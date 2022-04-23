@@ -1,0 +1,63 @@
+jenkins:
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+       - id: ${JENKINS_ADMIN_ID}
+         password: ${JENKINS_ADMIN_PASSWORD}
+  
+  authorizationStrategy:
+    globalMatrix:
+      permissions:
+        - "Overall/Administer:admin"
+        - "Overall/Read:authenticated"
+
+  remotingSecurity:
+    enabled: true
+
+tool:
+  maven:
+    installations:
+    - name: "Maven 3.8.1"
+      properties:
+      - installSource:
+          installers:
+          - maven:
+              id: "3.8.1"
+
+  ansibleInstallation:
+    installations:
+      - name: "ansible"
+        properties:
+        - installSource:
+            installers:
+
+
+# TODO: scope FOLDER?
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+        - usernamePassword:
+            #scope: GLOBAL / SYSTEM / USER
+            scope: GLOBAL
+            id: github-repo-credentials
+            username: "${GIT_HUB_USERNAME}"
+            password: "${GIT_HUB_ACCESS_TOKEN}"
+        - usernamePassword:
+            scope: GLOBAL
+            id: dockerhub-credentials
+            username: "${DOCKER_HUB_USER_NAME}"
+            password: "${DOCKER_HUB_ACCESS_TOKEN}"
+
+
+security:
+  queueItemAuthenticator:
+    authenticators:
+      - global:
+          strategy: triggeringUsersAuthorizationStrategy     
+
+unclassified:
+  location:
+    url: http://server_ip:8080/

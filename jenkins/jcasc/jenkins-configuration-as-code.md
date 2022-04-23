@@ -179,14 +179,27 @@ See for an example: https://devopscube.com/docker-containers-as-build-slaves-jen
 (Not recommended) If you don't have any Agents, you can still use `dockerfile` as your agent in pipelines.
 This will start a container on the same machine and run your jobs inside that container. 
 
+### Documentation for JCasC
+The documentation for all the possible elements can be found in `Jenkins > Manage Jenkins > Configuration as Code > Documentation`
+
+### Export JCasC Configuration
+You can export a `yml` file for an existing jenkins instance. That file will then show most of the configuration you did on the instance as a casc yml file. 
+But this is intended to be used only as a starting point and as a help.
+
 ## Troubleshooting
 
 Race condition: `DefaultCrumbIssuer is missing its descriptor`
 See: https://issues.jenkins.io/browse/JENKINS-63385
 
+
+
 ## Todos
  * Artifactory
  * Reference jenkinsfiles in job1.groovy
+ * Document common mistakes to avoid: https://www.youtube.com/watch?v=aFRjn_4nb-Q
+ * Need to watch: 
+    mvn java and docker: https://www.youtube.com/watch?v=HaGeSq-SB9E&t=4s
+    Env variables: https://www.youtube.com/watch?v=KwQDxwZRZiE
  * SSH keys
  * Still known hosts error
  * Docker instances are by default exposed (0.0.0.0:8080). Maybe use reverse proxy for Jenkins and make it 127.0.0.1:8080? 
@@ -195,5 +208,5 @@ See: https://issues.jenkins.io/browse/JENKINS-63385
  * Put jobs inside folders and views
  * Create seed job in `configuration-as-code.yaml`
  * Create a VM with Vagrant and set it as an agent
-
-
+ * How to do the user creation? Best practices?
+ * Remove all unused plugins, and check recommended plugins

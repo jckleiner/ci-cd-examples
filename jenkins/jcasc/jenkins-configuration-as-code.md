@@ -204,7 +204,9 @@ See: https://issues.jenkins.io/browse/JENKINS-63385
  * Still known hosts error
  * Docker instances are by default exposed (0.0.0.0:8080). Maybe use reverse proxy for Jenkins and make it 127.0.0.1:8080? 
    And what about build containers, check if they are also exposed?
- * What happens if you want multiple JDK or maven versions? How do you configure it in Jenkins?
+ * What happens if you want multiple JDK or maven versions? How do you configure it in Jenkins? 
+    -> One way is to use official images `maven:3.8.5-openjdk-17` or `maven:3.5-openjdk-11` etc.
+    -> Another is to explicitly install the wanted versions in our Dockerfile
  * Put jobs inside folders and views
  * Create seed job in `configuration-as-code.yaml`
  * Create a VM with Vagrant and set it as an agent

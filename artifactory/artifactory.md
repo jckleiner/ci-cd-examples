@@ -2,7 +2,7 @@
 # Artifactory
 Simple Docker Installation: https://www.jfrog.com/confluence/display/JFROG/Installing+Artifactory#InstallingArtifactory-DockerInstallation 
 You need to setup these directories once:
- 1. make sure you are inside the artifactory folder
+ 1. make sure you are inside the `artifactory` folder
  2. `mkdir -p ./var/etc`
  3. `touch ./var/etc/system.yaml`
  4. `sudo chown -R 1030:1030 ./var`
@@ -13,7 +13,7 @@ Artifactory has uses 2 ports:
  - `8082`: ui endpoint
 
 ## Setup
- 1. Start Artifactory: `docker run --name artifactory -v ~/develop/personal/learning-and-notes/artifactory/var:/var/opt/jfrog/artifactory -d -p 8081:8081 -p 8082:8082 releases-docker.jfrog.io/jfrog/artifactory-oss:latest`
+ 1. Start Artifactory: `docker run --name artifactory -v ~/develop/personal/ci-cd-examples/artifactory/var:/var/opt/jfrog/artifactory -d -p 8081:8081 -p 8082:8082 releases-docker.jfrog.io/jfrog/artifactory-oss:latest`
  2. `http://localhost:8082` -> Default username: `admin`, Default password: `password`
  3. change your admin password (system forces you to do so). Change it to `Password1*`
  4. create a new user `ci-user` with a password `Password1*`
@@ -61,7 +61,7 @@ System configuration with YAML: https://www.jfrog.com/confluence/display/JFROG/A
 Deploy a local maven artifact to the local artifactory:
  1. cd into a maven project folder
  2. Add the `distributionManagement` snippet shown below to the pom
- 3. run: `mvn -s ~/develop/personal/learning-and-notes/artifactory/settings.xml clean deploy --fail-at-end --no-transfer-progress`
+ 3. run: `mvn -s ~/develop/personal/ci-cd-examples/artifactory/settings.xml clean deploy --fail-at-end --no-transfer-progress`
 
 This snippet should be pasted to the `pom.xml`:
 ```xml
@@ -130,5 +130,6 @@ If you push the same version again, it will give you a success response but **it
  - Permissions and groups
  - pulling release artifacts, if you don't give a version, it pulls the latest?
 
+`docker stop artifactory && docker rm artifactory`
 
 Check version and other infos (needs admin account): http://localhost:8081/artifactory/api/system/version

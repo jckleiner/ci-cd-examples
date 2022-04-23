@@ -24,6 +24,7 @@ USER root
 
 # RUN apt update && apt install -y ansible # installs ansbile 2.7
 # Install ansible 2.9.24 - https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html
+# TODO this is not needed if Docker is used as an agent
 RUN echo "deb http://ppa.launchpad.net/ansible/ansible/ubuntu bionic main" | tee -a /etc/apt/sources.list && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367 && \
     apt update && \

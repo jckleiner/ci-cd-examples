@@ -134,7 +134,7 @@ pipelineJob('github-demo') {
             scm {
                 git {
                     remote {
-                        github('jckleiner/learning-and-notes')
+                        github('jckleiner/ci-cd-examples')
                     }
                 }
             }

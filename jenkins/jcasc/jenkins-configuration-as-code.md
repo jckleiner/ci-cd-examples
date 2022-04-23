@@ -182,9 +182,15 @@ This will start a container on the same machine and run your jobs inside that co
 ### Documentation for JCasC
 The documentation for all the possible elements can be found in `Jenkins > Manage Jenkins > Configuration as Code > Documentation`
 
-### Export JCasC Configuration
+### View/Export/Reload JCasC Configuration
+If you go to `Manage Jenkins > Configuration as Code`, you can reload, view or download your existing configuration.
 You can export a `yml` file for an existing jenkins instance. That file will then show most of the configuration you did on the instance as a casc yml file. 
 But this is intended to be used only as a starting point and as a help.
+
+## Credendials
+Docs: 
+ 1. https://github.com/jenkinsci/configuration-as-code-plugin/blob/master/docs/features/secrets.adoc
+ 2. https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/credentials
 
 ## Troubleshooting
 

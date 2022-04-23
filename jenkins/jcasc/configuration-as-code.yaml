@@ -32,10 +32,58 @@ security:
     - global:
         strategy: triggeringUsersAuthorizationStrategy
 
+credentials:
+  system:
+    # https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/credentials
+    domainCredentials:
+      - credentials:
+        - usernamePassword:
+            #scope: GLOBAL / SYSTEM / USER
+            scope: GLOBAL
+            id: github-repo-credentials
+            username: "${GIT_HUB_USERNAME}"
+            password: "${GIT_HUB_ACCESS_TOKEN}"
+            usernameSecret: true # Treat username as secret
+            description: GitHub account with access token
+        - usernamePassword:
+            scope: GLOBAL
+            id: dockerhub-credentials
+            username: "${DOCKER_HUB_USER_NAME}"
+            password: "${DOCKER_HUB_ACCESS_TOKEN}"
+            usernameSecret: true
+        - usernamePassword:
+            scope: GLOBAL
+            id: ci-user-credentials
+            username: "ci-user"
+            password: "Password1*"
+            usernameSecret: true
+        - string:
+            id: 'webhook-secret'
+            secret: "blabla"
+            description: 'Webhook secret'
+            scope: GLOBAL
+
 unclassified:
   # Specify the Jenkins URL
   location:
     url: http://localhost:8080/
+
+  # Config File Provider Plugin
+  globalConfigFiles:
+    configs:
+    - globalMavenSettings:
+        comment: "Maven Global settings"
+        # TODO read from file?
+        content: "${readFile:/var/jenkins_home/example-jobs/settings.xml}"
+        id: "global-maven-settings"
+        isReplaceAll: true
+        name: "global-maven-settings"
+        providerId: "org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig"
+        serverCredentialMappings:
+          - credentialsId: "ci-user-credentials"
+            serverId: "artifactory-maven-release"
+          - credentialsId: "ci-user-credentials"
+            serverId: "artifactory-maven-snapshot"
 
 # https://github.com/jenkinsci/job-dsl-plugin/blob/master/docs/JCasC.md
 # https://stackoverflow.com/questions/35898020/job-dsl-to-create-pipeline-type-job

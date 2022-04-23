@@ -1,0 +1,95 @@
+# Documentation: https://github.com/jenkinsci/plugin-installation-manager-tool
+
+plugins:
+  # Example:
+  
+  # - artifactId: workflow-step-api
+  # - groupId: org.jenkins-ci.plugins.workflow
+  #   source:
+  #     version: 1414.v878271fc496f
+  #     # Optional: download URL
+  #     url: http://ftp-chi.osuosl.org/pub/jenkins/plugins/script-security/1.56/script-security.hpi
+  
+  - artifactId: configuration-as-code
+    source:
+      version: 1414.v878271fc496f
+
+  - artifactId: git
+    source:
+      version: latest
+
+
+  - artifactId: matrix-auth
+    source:
+      version: 3.1
+
+  - artifactId: authorize-project
+    source:
+      version: 1.4.0
+
+  - artifactId: maven-plugin
+    source:
+        version: 3.18
+
+  - artifactId: ansible
+    source:
+        version: 1.1
+
+  # displays the stages of a pipeline on the pipeline overview page
+  - artifactId: pipeline-stage-view
+    source:
+        version: 2.23
+
+  - artifactId: ssh-agent
+    source:
+        version: latest
+
+  - artifactId: ssh-slaves
+    source:
+        version: latest
+
+  # Pipeline
+  - artifactId: workflow-aggregator
+    source:
+        version: 2.7
+
+  # Docker Pipeline: allows to use docker inside pipelines
+  - artifactId: docker-workflow
+    source:
+        version: 1.28
+
+  - artifactId: job-dsl
+    source:
+        version: 1.79
+
+  - artifactId: credentials-binding
+    source:
+      version: latest
+
+  - artifactId: cloudbees-folder
+    source:
+      version: latest
+
+  - artifactId: antisamy-markup-formatter
+    source:
+      version: 2.7
+
+  - artifactId: build-timeout
+    source:
+      version: 1.20
+
+  - artifactId: config-file-provider
+    source:
+      version: 3.9.0
+
+  - artifactId: sonar
+    source:
+      version: 2.14
+
+  - artifactId: Office-365-Connector
+    source:
+      version: 4.16.1
+
+  - artifactId: chucknorris
+    source:
+      version: latest

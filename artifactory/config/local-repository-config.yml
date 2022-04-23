@@ -1,0 +1,32 @@
+# See ./sample-config.yml for examples (or https://www.jfrog.com/confluence/display/JFROG/Artifactory+YAML+Configuration)
+localRepositories:
+  
+  artifactory-maven-snapshot:
+    type: maven
+    description: "Snapshot artifacts"
+    notes: "Hello world 2"
+    repoLayout: maven-2-default 
+    snapshotVersionBehavior: unique
+    checksumPolicyType: client-checksums
+    maxUniqueSnapshots: 4
+    
+    handleReleases: false
+    handleSnapshots: true
+    suppressPomConsistencyChecks: false
+    downloadRedirect:
+      enabled: false
+
+  artifactory-maven-release:
+    type: maven
+    description: "Release artifacts"
+    notes: "Hello world 2"
+    repoLayout: maven-2-default 
+    snapshotVersionBehavior: unique
+    checksumPolicyType: client-checksums
+    maxUniqueSnapshots: 0
+    
+    handleReleases: true
+    handleSnapshots: false
+    suppressPomConsistencyChecks: false
+    downloadRedirect:
+      enabled: false

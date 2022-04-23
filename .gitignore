@@ -1,0 +1,62 @@
+### General
+ignored/
+
+### OS generated files 
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+### Compiled source
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+target/
+.settings/
+.classpath
+.project
+
+# CMake
+cmake-build-*/
+
+# File-based project format
+*.iws
+
+# IntelliJ
+out/
+.idea/
+*.iml
+
+
+# mpeltonen/sbt-idea plugin
+.idea_modules/
+
+# JIRA plugin
+atlassian-ide-plugin.xml
+
+# Crashlytics plugin (for Android Studio and IntelliJ)
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+# Word temporary
+~$*.doc*
+~$*.dot*
+
+# Visio autosave temporary files
+*.~vsd*
+
+.gradle
+
+.env
+
+Jenkins.docx
+jcasc

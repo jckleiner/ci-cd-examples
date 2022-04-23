@@ -1,0 +1,45 @@
+# example: https://github.com/jdstamp/ccmb-jenkins/blob/main/configuration/configuration-as-code.yaml
+
+jenkins:
+  securityRealm:
+    local:
+      # prevent anonymous users from creating an account through the web interface
+      allowsSignup: false
+
+      users:
+      # variables are looked up from 
+      #   1. env variables, 
+      #   2. file of the same name that’s placed inside the `/run/secrets/`
+      - id: ${JENKINS_ADMIN_ID}
+        password: ${JENKINS_ADMIN_PASSWORD}
+
+  # No longer needed: https://www.jenkins.io/doc/book/security/controller-isolation/jep-235/#api-compatibility
+  # remotingSecurity:
+  #   enabled: true
+
+  authorizationStrategy:
+    # requires matrix-auth plugin
+    globalMatrix:
+      permissions:
+        - "USER:Overall/Administer:admin"
+        - "GROUP:Overall/Read:authenticated"
+        # - "GROUP:Overall/Administer:anonymous" # TODO for testing
+
+# requires authorize-project plugin
+security:
+  queueItemAuthenticator:
+    authenticators:
+    - global:
+        strategy: triggeringUsersAuthorizationStrategy
+
+unclassified:
+  # Specify the Jenkins URL
+  location:
+    url: http://localhost:8080/
+
+# https://github.com/jenkinsci/job-dsl-plugin/blob/master/docs/JCasC.md
+# https://stackoverflow.com/questions/35898020/job-dsl-to-create-pipeline-type-job
+
+# requires job-dsl plugin
+jobs:
+  - file: /var/jenkins_home/example-jobs/job1.groovy

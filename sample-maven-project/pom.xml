@@ -25,11 +25,11 @@
         -->
 		<repository>
 			<id>artifactory-maven-release</id>
-			<url>http://localhost:8081/artifactory/artifactory-maven-release</url>
+			<url>artifactory:8081/artifactory/artifactory-maven-release</url>
 		</repository>
 		<snapshotRepository>
 			<id>artifactory-maven-snapshot</id>
-			<url>http://localhost:8081/artifactory/artifactory-maven-snapshot</url>
+			<url>artifactory:8081/artifactory/artifactory-maven-snapshot</url>
 		</snapshotRepository>
 	</distributionManagement>
 

@@ -54,8 +54,8 @@ credentials:
         - usernamePassword:
             scope: GLOBAL
             id: ci-user-credentials
-            username: "ci-user"
-            password: "Password1*"
+            username: "admin"
+            password: "password"
             usernameSecret: true
         - string:
             id: 'webhook-secret'

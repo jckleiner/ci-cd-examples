@@ -119,8 +119,9 @@ pipelineJob('example-job-ubuntu22') {
                 stage('Build') {
                     steps {
                         dir('ci-cd-examples/sample-maven-project') {
-                            sh "mvn clean install --fail-at-end --no-transfer-progress --batch-mode"
-
+                            configFileProvider([configFile(fileId: 'global-maven-settings', variable: 'MAVEN_SETTINGS')]) {
+                                sh "mvn -s $MAVEN_SETTINGS clean deploy --fail-at-end --no-transfer-progress --batch-mode"
+                            }
                         }
                     }
                 }

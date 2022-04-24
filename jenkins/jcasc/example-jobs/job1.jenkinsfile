@@ -1,0 +1,52 @@
+// Host key verification failed: https://stackoverflow.com/questions/15214977/cloning-git-repo-causes-error-host-key-verification-failed-fatal-the-remote/29380672#29380672
+def repoUrl = 'ssh://git@github.com:jckleiner/notion-backup.git'
+// def repoUrl = 'https://github.com/jckleiner/notion-backup.git'
+def branch = 'master'
+
+pipeline {
+    agent {
+        dockerfile {
+            dir '/var/jenkins_home/dockerfiles'
+            filename 'Dockerfile.ubuntu22'
+        }
+    }
+    // agent {
+    //     docker { image 'node:16.13.1-alpine' }
+    // }
+    // agent {
+    //     dockerfile {
+    //         dir './path/to/dockerfile'
+    //         filename 'Dockerfile.node16'
+    //         label 'my-label'
+    //         additionalBuildArgs  '--build-arg version=1.0'
+    //         args '-v /tmp:/tmp'
+
+    //     }
+    // }
+    stages {
+        stage('Test') {
+            steps {
+                sh 'java --version'
+                sh 'git --version'
+                sh 'curl --version'
+                sh 'jq --version'
+            }
+        }
+        stage('Checkout') {
+            steps {
+                dir('my-repo') {
+                    git branch: branch,
+                        url: repoUrl
+                }
+            }
+        }
+        stage('Build') {
+            steps {
+                dir('my-repo') {
+                    sh "mvn clean install --fail-at-end --no-transfer-progress --batch-mode"
+                    
+                }
+            }
+        }
+    }
+}

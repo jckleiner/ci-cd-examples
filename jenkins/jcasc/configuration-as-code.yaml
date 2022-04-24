@@ -73,7 +73,6 @@ unclassified:
     configs:
     - globalMavenSettings:
         comment: "Maven Global settings"
-        # TODO read from file?
         content: "${readFile:/var/jenkins_home/example-jobs/settings.xml}"
         id: "global-maven-settings"
         isReplaceAll: true

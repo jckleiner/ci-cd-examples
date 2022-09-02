@@ -60,3 +60,8 @@ fabric.properties
 
 # TODO
 ansible-and-vagrant
+.vagrant
+.terraform
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.lock.hcl

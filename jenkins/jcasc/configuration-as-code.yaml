@@ -54,8 +54,8 @@ credentials:
         - usernamePassword:
             scope: GLOBAL
             id: ci-user-credentials
-            username: "ci-user"
-            password: "Password1*"
+            username: "admin"
+            password: "password"
             usernameSecret: true
         - string:
             id: 'webhook-secret'
@@ -73,7 +73,6 @@ unclassified:
     configs:
     - globalMavenSettings:
         comment: "Maven Global settings"
-        # TODO read from file?
         content: "${readFile:/var/jenkins_home/example-jobs/settings.xml}"
         id: "global-maven-settings"
         isReplaceAll: true

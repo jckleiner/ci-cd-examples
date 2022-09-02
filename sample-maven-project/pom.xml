@@ -13,9 +13,26 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>demo</name>
 	<description>Demo project for Spring Boot</description>
+	
 	<properties>
 		<java.version>17</java.version>
 	</properties>
+
+	<distributionManagement>
+        <!-- 400 Bad Request will be returned if you attempt to:
+            Deploy a snapshot artifact (version ending in -SNAPSHOT) to a release repository
+            Deploy a release artifact (version not ending in -SNAPSHOT) to a snapshot repository
+        -->
+		<repository>
+			<id>artifactory-maven-release</id>
+			<url>http://artifactory:8081/artifactory/artifactory-maven-release</url>
+		</repository>
+		<snapshotRepository>
+			<id>artifactory-maven-snapshot</id>
+			<url>http://artifactory:8081/artifactory/artifactory-maven-snapshot</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

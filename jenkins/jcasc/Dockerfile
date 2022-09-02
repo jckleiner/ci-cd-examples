@@ -49,7 +49,6 @@ RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.yaml
 COPY --chown=jenkins:jenkins configuration-as-code.yaml /var/jenkins_home/configuration-as-code.yaml
 ADD --chown=jenkins:jenkins example-jobs /var/jenkins_home/example-jobs
 ADD --chown=jenkins:jenkins dockerfiles /var/jenkins_home/dockerfiles
-ADD --chown=jenkins:jenkins logic /var/jenkins_home/logic
 
 USER root
 

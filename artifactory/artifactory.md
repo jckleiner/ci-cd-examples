@@ -131,5 +131,6 @@ If you push the same version again, it will give you a success response but **it
  - pulling release artifacts, if you don't give a version, it pulls the latest?
 
 `docker stop artifactory && docker rm artifactory`
+`docker run --name artifactory -v ~/develop/personal/ci-cd-examples/artifactory/var:/var/opt/jfrog/artifactory -d -p 8081:8081 -p 8082:8082 releases-docker.jfrog.io/jfrog/artifactory-oss:latest`
 
 Check version and other infos (needs admin account): http://localhost:8081/artifactory/api/system/version

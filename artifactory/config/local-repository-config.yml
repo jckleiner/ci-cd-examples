@@ -9,7 +9,6 @@ localRepositories:
     snapshotVersionBehavior: unique
     checksumPolicyType: client-checksums
     maxUniqueSnapshots: 4
-    
     handleReleases: false
     handleSnapshots: true
     suppressPomConsistencyChecks: false
@@ -24,7 +23,6 @@ localRepositories:
     snapshotVersionBehavior: unique
     checksumPolicyType: client-checksums
     maxUniqueSnapshots: 0
-    
     handleReleases: true
     handleSnapshots: false
     suppressPomConsistencyChecks: false

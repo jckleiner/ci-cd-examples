@@ -188,16 +188,16 @@ You can think of the AWS provider as a plugin which knows how to interpret and w
 
 ### Folder Structure
 
- * `.terraform`
+ * `.terraform/`
  * `terraform.tfstate`
  * `terraform.tfstate.backup`
  * `.terraform.lock.hcl`
 
-#### .terraform
+#### .terraform/
 When we did a `terraform init`, it scanned our `main.tf` and identified the providers you need. By default, the bare bones terraform does not have the ability to work with AWS or Azure. When it sees that we want to work with AWS, it will download the AWS provider and save it in the `.terraform` folder. It is an executable file which will do the communication to AWS. Terraform will invoke this executable.
 
 #### terraform.tfstate
-This file contains the **state of your infrastructure**.
+This JSON file contains the **state of your infrastructure**.
 
  * This file can also contain sensitive information
 
@@ -236,8 +236,308 @@ When using remote state, state is only ever held in memory when used by Terrafor
 Serves as a backup. Each time `terraform.tfstate` is updated, the old file will be moved to `terraform.tfstate.backup`. So it's like having a commit history of of 2 commits.
 
 #### .terraform.lock.hcl
+This file helps make the runs be deterministic, meaning that each execution will result to the same output. This lock file helps freeze the exact external dependency versions used in the config so that if it's used by other people in the future (when new versions of those external dependencies are present) it will yield the same result.
+
+ * When you do a `terraform init` if no lock file is present, it will create one. If its present then it will use that lock file to get the exact versions.
+ * `terraform init -updgrade` will upgrade the versions.
+
+A Terraform configuration may refer to two different kinds of external dependency that come from outside of its own codebase:
+
+  * **Providers**, which are plugins for Terraform that extend it with support for interacting with various external systems.
+  * **Modules**, which allow splitting out groups of Terraform configuration constructs (written in the Terraform language) into reusable abstractions.
+
+**Both of these dependency types can be published and updated independently from Terraform itself and from the configurations that depend on them**. For that reason, Terraform must determine which versions of those dependencies are potentially compatible with the current configuration and which versions are currently selected for use.
+
+Version constraints within the configuration itself determine which versions of dependencies are potentially compatible, but after selecting a specific version of each dependency Terraform remembers the decisions it made in a dependency lock file so that it can (by default) make the same decisions again in future.
+
+At present, the dependency lock file tracks **only provider dependencies**. Terraform does not remember version selections for remote modules, and so Terraform will always select the newest available module version that meets the specified version constraints. You can use an exact version constraint to ensure that Terraform will always select the same module version.
+
+### The `terraform` block
+The `terraform` block in the main configuration:
+ * configures all terraform settings
+ * "Expected" terraform version. This is important because in some versions (0.12) there were some breaking changes to terraform.
+ * Configures providers
+ * `source` defines where the provider comes from.
+   By default terraform checks and fetches the providers from the hashicorp registry, if you need to change that, you can specify it in the terraform block 
+
+```
+terraform {
+  reqired_providers {
+    aws = {
+        // you can explicitly write this is the provider
+        // does not come from hashicops registry
+        source = "hashicorp/aws"
+        version = "~> 3.27"
+    }
+  }
+  // version of terraform
+  required_version = "~>0.12.0"
+}
+```
+
+#### source = "hashicorp/aws"
+ * Provider has two identifiers
+ * Unique source address (`hashicorp/aws`)
+ * Local name (`aws`), which we used in `main.tf` `provider "aws" {...}`
+ * Source address: `[<HOSTNAME>/]<NAMESPACE>/<TYPE>`
+   * Hostname (Example: `registry.terraform.io`) can be omitted if its the official registry like here
+   * Namespace (Example: `hashicorp`)
+   * Type (Example: `aws`)
+   * Full soure address: `registry.terraform.io/hashicorp/aws`
+
+
+### HCL Syntax
+The goal of HCL code is to represent infrastructure objects.
+Every infrastructure object is respresented using blocks.
+
+```
+<BLOCK TYPE> "<BLOCK LABEL>" "<BLOCK LABEL>" {
+    // Block body
+    <IDENTIFIER> = <EXPRESSION>
+}
+```
+
+There are some formatting guidelines, for example the equals symbols being aligned. You can use `terraform fmt` to format your code.
+
+```
+  profile = "default"
+  region  = "eu-central-1"
+```
+
+**String Interpolation**
+
+```
+tags = {
+    Name = "ec2-${var.app_tag_name}"
+  }
+```
+
+### Variables
+```
+variable "app_tag_name" {
+    description = "Name tag of the application"
+    type = string
+    default = "my_super_app"
+}
+```
+The variable can then be accessed with `var.app_tag_name` and it will evaluate to `my_super_app`
+
+ * **default**: The value to use if it was not provided. If a value is provided, it will overwrite the default value.
+ * **type**: terraform defines some data types, it has to be one of them.
+ * **description**:
+ * **validation**: You can set rules of how you want the input to look like
+ * **sensitive**: if you define a variable as sensitive, terraform won't echo out the value to the console.
+ * **nullable**: if its not nullable then you need to define the value upfront, the default value.
+
+```
+variable "ami_id" {
+    type = string
+    description = "The id of the machine image to use for the server"
+
+    validation {
+        condition = length(var.ami_id) > 4 && substr(var.ami_id, 0, 4) == "ami-"
+        error_message = "Must be a valid AMI id, starting with ami-"
+    }
+}
+```
+
+When you don't have a default value for a variable, you need to assign it. This can be done in 3 ways:
+ 1. Pass each variable value manually. If you run `terraform plan`, you will get a prompt asking you to provide the values for each variable.
+ 2. Pass the value with CLI arguments when running the command `terraform plan -var "ami_id=ami-1234"`
+ 3. Use environment variables `TF_VAR_<var_name>=`. For example `export TF_VAR_ami_id=ami-1234`
+
+#### Input Variables
+Values which are provided by you and used by the provider
+
+#### Output Variables
+When terraform gets data from the provider and sends it to you. For example to reach an EC2 instance, we needed to go to the AWS-UI to find out the Public IP address of the server. This can be accessed in the terraform console with an output variable.
+
+```
+output "var_name" {
+    value       = <resource.property>
+    description = "..."
+    sensitive   = false
+}
+```
+
+For example, getting the public IP address:
+
+```
+output "public_ip" {
+    value       = aws_instance.my_app_server.public_ip
+    description = "The public IP address of my web server"
+}
+```
+
+Having this block will print out the value by default to the console when running a terraform command. Which means this can be used to find information about the different instances. For example if you create an output variable with the value `value = aws_instance.my_app_server`, this will print out all the properties of the aws_instance object to the console. All those properties which says `known after apply`, you can get the values of these once it is created.
+ * `terraform output` to print only all the output variables
+ * The output variables are saved to the state file after do an apply. When you introduced a new output variable it won't be accessible until you do `terraform apply` or `terraform refresh` 
+
+#### Local Variables
+If all you need is to avoid duplicating values and you don't want it to be overwritten by the CLI or environment variables, you can use local variables.
+
+```
+locals {
+  http_port = 80
+}
+
+# usage
+port = local.http_port
+```
+#### Variables Best Practices
+Recommended is to create a `variable.tf` or `output.tf` file to store your variables and not have them defined in your main tf file. This way you can quickly see what are all the required values that you need to provide (`variable.tf`).
+
+ * The name of the file does not matter as long as it is in the root directory.
+
+Furthermore, you can create a `terraform.tfvars` file and put all the default values of your variables there in a  `key = "value"` format:
+
+```bash
+app_tag_name = "my_super_app"
+ami_id = "ami-xyz"
+...
+```
+
+**Using `default` vs `terraform.tfvars`**: they mean different things. Providing a default value means that if nothing was provided, the default should be used but if you put the value in `terraform.tfvars`, you explicitly say that you are providing a value and even if a default exists, it should be overwritten. So, you should still use the `default` keyword if necessary.
+
+### Data Types
+ * **string**
+ * **number**
+ * **bool**
+ * **list**
+   * `type = list(number) default = [80, 81]`
+   * lookup: `var.port_numbers[0]`
+ * **map**
+   * `type = map(string)`
+     `default = { key = "value" key2 = "value2"}`
+   * lookup: `lookup(map, key, default)`
+ * **object** (you define the structure of the object)
+   * type = object({
+       ami_name = string
+       count    = number
+       tags     = list(string)
+       enabled  = bool
+      })
+  * **set**
+  * **tuple**
+  * **any** (if no type is defined)
+
+
+
+
+### Loops
+```python
+variable "bucket_names" {
+  type = list(string)
+  default = ["dev", "test", "prod"]
+}
+
+resource "aws_s3_bucket" "app_image_buckets" {
+  for_each = toset(var.bucket_names)
+  bucket = "202201010157-app_image_bucket-${each.value}"
+}
+```
+
+### Count property
+It's a meta property of a terraform resource. Every terraform resource has a count property which allows you to specify how many of this resource you need.
+
+To create 3 AWS S3 buckets:
+```python
+resource "aws_s3_bucket" "b" {
+  count = 3
+}
+```
+
+The object `b` will be a list and you can access the different bucket objects by `b[<0-3>]`.
+
+To get the index:
+```python
+resource "aws_s3_bucket" "b" {
+  count = 3
+  bucket = "202201010157-app_image_bucket-${count.index}"
+}
+```
+
+### Data Sources (Data Variables)
+Data sources allow Terraform to use information defined outside of Terraform, defined by another separate Terraform configuration, or modified by functions.
+ * Each provider may offer data sources alongside its set of resource types.
+
+To load the information of the default AWS VPC into an object:
+
+```python
+data "aws_vpc" "default" {
+  default = true
+}
+```
+
+Now we can use that object to access the ID of the VPC:
+```python
+vpc_id = data.aws_vpc.default.id
+```
+
+Another common use case is to get the AMI ID's. If you don't know the AMI ID, you can use different filters and owner id's to fetch the ami id.
+This will also always get the ID of the latest AMI.
+
+```python
+data "aws_ami" "latest_ubuntu" {
+  most_recent = true
+  owners = ["099720109477"] # Canonical, is also a data source
+
+  filter {
+    name = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-*"]
+  }
+  filter {
+    name = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+```
+
+ * The **problem** with data sources is that your code can become **non-deterministic**.
+ * You might want to avoid depending on data which might change and stick to what you defined.
+
+
+### Dependencies with Resources
+For example, if you have 2 resources which don't depend on eachother (EC2 and S3 Bucket), by default they will be created in parallel. But in the previous example, the `aws_instance` was using the id of a `aws_security_group`, which means the security group needs to be created first and then the EC2 instance.
+Terraform is aware of these implicit dependecies.
+ * By default API calls happen in parallel if no dependencies
+ * If dependencies present, Terraform auto-orders based on dependencies. 
+ * For example, if you create 2 buckets and use bucket A's name in bucket B's definition, then this would be an **explicit dependency** and A will be created first.
+ * You can also create an **implicit dependency** by using the `depends_on` property.
+
+```python
+resoruce "aws_s3_bucket" "images" {...}
+
+resoruce "aws_s3_bucket" "images_backup" {
+  depends_on = [
+    aws_s3_bucket.images
+  ]
+}
+```
+
+#### Terraform Graph
+Terraform manages these dependencies using an internal graph.
+You can use `terraform graph` to get a JSON stucture of the dependency graph.
+If you need a graphical representation, you can use an online editor like [edotor.net](https://edotor.net/) or a VS Code extension like Graphviz and paste the JSON.
+
+![tf-graph](./images/tf-graph.jpg)
+
+
+### Real World Terraform
+
+
+### ...
+
+### Security Groups
+
+
+
+
+
+
+
+
 
 ### TODO
  * AWS don't use the root user to do everything, create a restricted user.
  * What should we check into source control?
- * Tfstate can contain sensitive information?

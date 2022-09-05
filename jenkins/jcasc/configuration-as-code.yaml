@@ -37,20 +37,20 @@ credentials:
     # https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/credentials
     domainCredentials:
       - credentials:
-        - usernamePassword:
-            #scope: GLOBAL / SYSTEM / USER
-            scope: GLOBAL
-            id: github-repo-credentials
-            username: "${GIT_HUB_USERNAME}"
-            password: "${GIT_HUB_ACCESS_TOKEN}"
-            usernameSecret: true # Treat username as secret
-            description: GitHub account with access token
-        - usernamePassword:
-            scope: GLOBAL
-            id: dockerhub-credentials
-            username: "${DOCKER_HUB_USER_NAME}"
-            password: "${DOCKER_HUB_ACCESS_TOKEN}"
-            usernameSecret: true
+        # - usernamePassword:
+        #     #scope: GLOBAL / SYSTEM / USER
+        #     scope: GLOBAL
+        #     id: github-repo-credentials
+        #     username: "${GIT_HUB_USERNAME}"
+        #     password: "${GIT_HUB_ACCESS_TOKEN}"
+        #     usernameSecret: true # Treat username as secret
+        #     description: GitHub account with access token
+        # - usernamePassword:
+        #     scope: GLOBAL
+        #     id: dockerhub-credentials
+        #     username: "${DOCKER_HUB_USER_NAME}"
+        #     password: "${DOCKER_HUB_ACCESS_TOKEN}"
+        #     usernameSecret: true
         - usernamePassword:
             scope: GLOBAL
             id: ci-user-credentials

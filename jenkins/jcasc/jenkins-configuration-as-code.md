@@ -134,7 +134,7 @@ This is because bind-volumes will by default have root as the owner. There is cu
 `docker stop jenkins && docker rm jenkins && docker build -t jenkins:jcasc .`
 `docker build -t jenkins:jcasc .`
 `docker run -d --name jenkins -p 8080:8080 --env-file=.env -v /var/run/docker.sock:/var/run/docker.sock jenkins:jcasc`
-`docker run --name jenkins -p 8080:8080 -e JENKINS_ADMIN_ID=admin -e JENKINS_ADMIN_PASSWORD=admin jenkins:jcasc`
+`docker run --name jenkins -p 8080:8080 -e JENKINS_ADMIN_ID=admin -e JENKINS_ADMIN_PASSWORD=admin -v /var/run/docker.sock:/var/run/docker.sock jenkins:jcasc`
 
 `docker stop ubuntu && docker rm ubuntu`
 `docker build -t ubuntu22 -f Dockerfile.ubuntu22 .`

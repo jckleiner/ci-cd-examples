@@ -32,7 +32,8 @@ resource "aws_instance" "my_app_server" {
   user_data     = <<-EOF
     #!/bin/bash
     echo "<br><p>My server is up!</p>" > index.html
-    nohup busybox httpd -f -p 8080
+    # nohup busybox httpd -f -p 8080
+    python3 -m http.server 8080 &
                  EOF
   tags = {
     Name = "ec2-${var.app_tag_name}"

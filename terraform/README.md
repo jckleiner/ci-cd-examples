@@ -525,19 +525,66 @@ If you need a graphical representation, you can use an online editor like [edoto
 
 ### Real World Terraform
 
+ * Multiple environments
+ * Multiple developers
+
+#### Dealing with Multiple Environments
+Both of these are possible solutions:
+ * **Separate folders for each environment**: the simplest solution but this possibly mean duplicating a lot of configuration. That duplication could be mitigated by using **modules**.
+ * **Terraform Workspaces**
+
+You can use Terraform workspaces, to manage multiple environments and multiple states. So far we were using the `default` workspace by default.
+`terraform workspace --help` to see the available workspace options
+ * `delete`
+ * `list`
+ * `new`
+ * `select`
+ * `show`
+
+Create and switch to a new workspace: `terraform workspace new test`. When you are in a different workspace, terraform won't consider the state file of other workspaces, which means you can create resources for `default` and then switch to `test` and run `terraform apply` again and create those resources again.
+  
+But you might end up with conflicts because of names and identifiers needing to be unique. 
+
+`terraform.workspace` is a variable where you can access the name of the current workspace name. This way you could change you configuration dynamically depending on the environment.
+For example:
+
+```python
+resource "aws_instance" "example" {
+  ami           = "ami-1234"
+  instance_type = terraform.workspace = "dev" ? "t2.micro" : "t2.medium"
+}
+```
+
+#### Dealing with Multiple Developers in a Team
+When you run your terraform config, it creates the state file `terraform.tfstate` on your machine. How do you work together with a team using that file?
+
+The solution is to have one `terraform.tfstate` file which all developers can work with at the same time.
+
+One option is to check this file in source control and the other developers will checkout that file. Now you have the same state file. But working like this has lots of problems.
+ * Imagine 2 developers having the same state file. Both now add a resource at the same time. Now they will have different state files, which means a conflict in the state file. So we need some sort of a **locking system**.
+ * A state file can also contain sensitive data, that's another disadvantage.
+
+The solution is **remote state with locking**. A common shared remote location where the state file will reside and will only be accessed by one person each time.. Each terraform command will work with that remote state file.
+
+TODO
+
+#### Setup remote backend
+ * Setup an S3 bucket to hold the sate file
+ * Setup a DynamoDb to support locking
+ * Configure the AWS provider to use these two
+TODO
+
+### Modules
+
 
 ### ...
-
-### Security Groups
-
-
-
-
-
-
 
 
 
 ### TODO
  * AWS don't use the root user to do everything, create a restricted user.
  * What should we check into source control?
+ * Terratest, localstack
+ * Testing infrastructure and best practices: 
+   * https://www.youtube.com/watch?v=xhHOW0EF5u8
+   * https://www.youtube.com/watch?v=RTEgE2lcyk4

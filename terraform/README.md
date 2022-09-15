@@ -561,18 +561,44 @@ When you run your terraform config, it creates the state file `terraform.tfstate
 The solution is to have one `terraform.tfstate` file which all developers can work with at the same time.
 
 One option is to check this file in source control and the other developers will checkout that file. Now you have the same state file. But working like this has lots of problems.
+ * A state file can also contain sensitive data, that's one disadvantage.
  * Imagine 2 developers having the same state file. Both now add a resource at the same time. Now they will have different state files, which means a conflict in the state file. So we need some sort of a **locking system**.
- * A state file can also contain sensitive data, that's another disadvantage.
 
-The solution is **remote state with locking**. A common shared remote location where the state file will reside and will only be accessed by one person each time.. Each terraform command will work with that remote state file.
-
-TODO
+The solution is **remote state with locking**. A common shared remote location where the state file will reside and will only be accessed by one person each time. Each terraform command will work with that remote state file.
 
 #### Setup remote backend
- * Setup an S3 bucket to hold the sate file
- * Setup a DynamoDb to support locking
- * Configure the AWS provider to use these two
-TODO
+ 1. Setup an S3 bucket to hold the sate file
+ 2. Setup a DynamoDb to support locking
+ 3. Configure the AWS provider to use these two
+
+The s3 bucket needs to be created/present before running `terraform init` or else Terraform will complain `Error: Failed to get existing workspaces: S3 bucket does not exist. The referenced S3 bucket must have been previously created`.
+
+One way to do this is to first create all the resources with Terraform and after that setup the remote state configuration
+
+The DynamoDB attribute and the hash_key **must be named exactly** `LockID`, anything else and you will get the following error:
+
+```
+ Error: Error acquiring the state lock
+│ 
+│ Error message: 2 errors occurred:
+│       * ValidationException: One or more parameter values were invalid: Missing the key lockID in the item
+│       status code: 400, request id: U12S2N6PPFKHF6H5N5FATTTDBJVV4KQNSO5AEMVJF66Q9ASUAAJG
+│       * ValidationException: The provided key element does not match the schema
+│       status code: 400, request id: N9AAVOC2KLAR5SPQSFP9667SMJVV4KQNSO5AEMVJF66Q9ASUAAJG
+```
+ * Comment out the `backend` block
+ * `terraform init` 
+ * `terraform apply` without the `backend` block to create the s3 bucket and the dynamoDB
+ * Wait for resources to initialize fully
+ * Uncomment the `backend` block
+ * `terraform init`, this will ask you `Do you want to copy existing state to the new backend?`, 
+   say yes and now Terraform will migrate your state to the remote s3 bucket with locking enabled
+
+Terraform will now acquire a lock before running `plan` and `apply` and will save the state to the s3 bucket.
+
+> All objects in an S3 bucket needs to be deleted before the bucket can be deleted.
+> Be careful when doing a `terraform destroy`, it might delete some resources (like the dynamoDB) but not delete the S3 bucket
+> This might give you errors with locking since the DB is gone. You can use the `-lock=false` flag to ignore locking.
 
 ### Modules
 

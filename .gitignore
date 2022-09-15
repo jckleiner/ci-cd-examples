@@ -63,6 +63,6 @@ ansible-and-vagrant
 .vagrant
 .terraform
 terraform.tfstate
-terraform.tfstate.backup
+terraform.tfstate.*
 .terraform.lock.hcl
 terraform.tfvars

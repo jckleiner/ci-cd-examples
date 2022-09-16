@@ -1,0 +1,21 @@
+---
+- name: Unsure Nginx is installed and is at the latest version
+  apt:
+    name: nginx
+    state: latest
+    update_cache: yes   # run 'apt get update' before
+
+- name: Make sure Nginx is running
+  systemd:
+    name: nginx
+    state: started
+
+- name: "Wait for ngix service port to open"
+  wait_for:
+    port: 80
+    timeout: 60
+
+- name: "Checking nginx http health endpoint"
+  uri:
+    url: "http://127.0.0.1"
+    timeout: 60

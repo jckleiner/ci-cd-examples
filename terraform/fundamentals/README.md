@@ -653,11 +653,46 @@ module "vpc" {
 }
 ```
 
+### Provisioners
+You can also integrate different provisioners like Ansible, Puppet, Chef etc. with terraform.
+Example code: [./provisioners-ansible](./provisioners-ansible/)
+
+```python
+resource "aws_instance" "nginx" {
+  ami                    = "ami-083e9f3cc36cb84a8" // ubuntu AMI
+  instance_type          = "t2.micro"
+  vpc_security_group_ids = [aws_security_group.ansible_allow_port_22_and_80.id]
+  # a key pair with this name must be present in your aws account
+  key_name = "ansible-example"
+
+  provisioner "remote-exec" {
+    inline = ["echo 'this will be executed on the remote server once the connection (defined below) is ready'"]
+
+    connection {
+      type        = "ssh"
+      user        = "ubuntu"
+      private_key = file(local.private_key_path)
+      host        = aws_instance.nginx.public_ip
+    }
+  }
+  # once the "remote-exec" block is finished, which means the ssh agent is ready on the remote machine,
+  # this block will be executed on the local machine.
+  provisioner "local-exec" {
+    command = "ansible-playbook -i ${aws_instance.nginx.public_ip}, --private-key ${local.private_key_path} nginx.yaml"
+  }
+}
+```
+
+The important points here:
+ * We can use `remote-exec` and `local-exec` to wait until the SSH is ready and then execute our scripts
+ * A key pair must be already present on your AWS account and on your machine.
+
 ### ...
 
 
 
 ### TODO
+ * Terraform provisioners simple example with ansible
  * AWS don't use the root user to do everything, create a restricted user.
  * What should we check into source control?
  * Terratest, localstack

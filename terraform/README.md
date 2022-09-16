@@ -571,37 +571,87 @@ The solution is **remote state with locking**. A common shared remote location w
  2. Setup a DynamoDb to support locking
  3. Configure the AWS provider to use these two
 
+Example code: [main.tf](./external-state/main.tf)
+
 The s3 bucket needs to be created/present before running `terraform init` or else Terraform will complain `Error: Failed to get existing workspaces: S3 bucket does not exist. The referenced S3 bucket must have been previously created`.
 
-One way to do this is to first create all the resources with Terraform and after that setup the remote state configuration
+One way to do this is to first create all the resources with Terraform and then setup the remote state configuration:
 
-The DynamoDB attribute and the hash_key **must be named exactly** `LockID`, anything else and you will get the following error:
+ * Comment out the `backend` block
+ * `terraform init` 
+ * `terraform apply` without the `backend` block to create the s3 bucket and the dynamoDB. The state file will be stored locally.
+ * Wait for resources to initialize fully
+ * Uncomment the `backend` block and do `terraform init`, this will ask you `Do you want to copy existing state to the new backend?`, 
+   say yes and now Terraform will migrate your state to the remote s3 bucket with locking enabled
+
+Terraform will now acquire a lock before running `plan` and `apply` and will save the state to the s3 bucket.
+  * You can/should also enable versioning and encryption in a production environment.
+
+The DynamoDB attribute and the hash_key **must be named exactly** `LockID`, anything else and you will get the following error (if you named id `lockID` for example):
 
 ```
  Error: Error acquiring the state lock
 │ 
 │ Error message: 2 errors occurred:
 │       * ValidationException: One or more parameter values were invalid: Missing the key lockID in the item
-│       status code: 400, request id: U12S2N6PPFKHF6H5N5FATTTDBJVV4KQNSO5AEMVJF66Q9ASUAAJG
+│       status code: 400, request id: US2N6PPF...EMVJF66Q9
 │       * ValidationException: The provided key element does not match the schema
-│       status code: 400, request id: N9AAVOC2KLAR5SPQSFP9667SMJVV4KQNSO5AEMVJF66Q9ASUAAJG
+│       status code: 400, request id: US2N6PPF...EMVJF66Q9
 ```
- * Comment out the `backend` block
- * `terraform init` 
- * `terraform apply` without the `backend` block to create the s3 bucket and the dynamoDB
- * Wait for resources to initialize fully
- * Uncomment the `backend` block
- * `terraform init`, this will ask you `Do you want to copy existing state to the new backend?`, 
-   say yes and now Terraform will migrate your state to the remote s3 bucket with locking enabled
-
-Terraform will now acquire a lock before running `plan` and `apply` and will save the state to the s3 bucket.
 
 > All objects in an S3 bucket needs to be deleted before the bucket can be deleted.
 > Be careful when doing a `terraform destroy`, it might delete some resources (like the dynamoDB) but not delete the S3 bucket
 > This might give you errors with locking since the DB is gone. You can use the `-lock=false` flag to ignore locking.
 
 ### Modules
+You can bundle code as modules and reuse those modules.
+ * A terraform module is a folder with `.tf` files
 
+Terraform ignores subfolders by default
+Whenever you add `module` to your `.tf` file, you need to do a `terraform init` so Terraform can install/fetch the module
+ * After init, a `.terraform/modules/modules.json` will be created which contains information about the modules used in this project.
+
+Modules can take arguments and the best practice is to also have a `variables.tf` for each module where all the input variables are defined.
+ * The variables defined in a folder can only be accessed in that folder and not outside.
+
+`./main.tf`
+```python
+module "my-s3-module" {
+    source = "./s3-module"
+    bucket_id = "my-demo-s3-bucket-module-images"
+}
+```
+
+`./s3-module/main.tf`
+```python
+resource "aws_s3_bucket" "module_images" {
+  bucket = var.bucket_id
+}
+```
+
+`./s3-module/variables.tf`
+```python
+variable "bucket_id" {
+    type = string
+}
+```
+
+#### Module Registry
+One of the biggest benefits of modules is that you can reuse modules from other people.
+ * https://registry.terraform.io/browse/modules
+
+There are many modules to do common tasks, a vpc module, a security-group module etc.
+These modules encapsulate all the work that you normally have to do by yourself and provide just the necessary configuration for you to tweak.
+For example the AWS vpc module:
+
+```python
+module "vpc" {
+  # could also be a GitHub or Bitbucket URL
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "3.14.4"
+  # some required input variables
+}
+```
 
 ### ...
 

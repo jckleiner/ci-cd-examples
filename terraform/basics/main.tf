@@ -85,10 +85,13 @@ data "aws_vpc" "default" {
 }
 
 resource "aws_s3_bucket" "images" {
-
+  # if 'bucket' is not provided, terraform will generate a unique ID
+  bucket = "my-demo-s3-bucket-images"
 }
 
 resource "aws_s3_bucket" "images_backup" {
+  bucket = "my-demo-s3-bucket-images-backup"
+
   depends_on = [
     aws_s3_bucket.images
   ]

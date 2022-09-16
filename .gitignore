@@ -61,8 +61,7 @@ fabric.properties
 # TODO
 ansible-and-vagrant
 .vagrant
-.terraform
+.terraform*
 terraform.tfstate
 terraform.tfstate.*
-.terraform.lock.hcl
 terraform.tfvars

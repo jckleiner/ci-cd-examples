@@ -40,18 +40,13 @@ resource "aws_s3_bucket" "terraform_app_state" {
 #   versioning {
 #     enabled = true
 #   }
-
-  /*
-    Other options:
-        - Enable versioning
-        - Enable encryption
-  */
 }
 
 resource "aws_dynamodb_table" "terraform_state_lock" {
     # table name
     name = "terraform-state-locks"
     billing_mode = "PAY_PER_REQUEST"
+    # must be named exactly "LockID"
     hash_key = "LockID"
 
     attribute {

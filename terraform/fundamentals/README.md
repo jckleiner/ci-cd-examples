@@ -1,15 +1,6 @@
 # Terraform
 
-## Agenda
- 1. Understanding IaC
- 2. Introduction to Terraform
- 3. Learning HCL - the Terraform language
- 4. Work with AWS using Terraform
- 5. Terraform workflow and commands
- 6. Enterprise Terraform best practices
- 7. Terraform Modules
-
-### What is DevOps?
+## What is DevOps?
 Before DevOps, there were the operations team and the developer team. The dev team were responsible of developing the code and the ops team were responsible of deploying and making sure that the code was running properly.
 
 The ops team:
@@ -35,10 +26,10 @@ Infrastructure as code is usually **declarative**.
 
 Errors are better handled in terraform compared to an imperative style.
 
-### Terraform vs Ansible
+## Terraform vs Ansible
 Terraform is responsible for provisioning resousrces on the cloud. It is **not responsible** for what is created on those resources. You can provide an image (AMI or Docker Image) which terraform will then configure on the resource, but creating and managing that image or changing things on the resource is not done with terraform. `Ansible` or `Puppet` are used for those task.
 
-### Terraform
+## Terraform
 > The definiton is (verb): to change the environment of a planet to make it able to support life. For example "terraforming Mars".
 
 Terraform is an open-source infrastructure as code software tool that provides a consistent CLI workflow to manage hundreds of cloud services.
@@ -46,7 +37,7 @@ Terraform codifies cloud APIs into declarative configuration files.
  * Cloud agnostic: meaning you can write your config/code and then with that code provision resources on different cloud providers.
  * Cloud Indepentent: meaning you don't need to work with the cloud. You can also provision your own local machines. It's extensible, so you can write your own plugins.
 
-#### Terraform Workflow
+### Terraform Workflow
 
 ![terraform-workflow](./images/terraform-workflow.png)
 
@@ -56,16 +47,16 @@ Terraform codifies cloud APIs into declarative configuration files.
    * Plan
    * Apply
 
-#### State
+### State
 State describes the resources which are already available(???). Terraform checks the state before it does changes. This makes sure that your code is **idempotent**.
 
-### Authentication
+## Authentication
 
 * **Don't put your account ID and secret in any terraform file!**
 
 The best way is to use the CLI's of the cloud providers. Those will setup and store your credentials in the best way possible and terraform will also know where and how to access those credentials depending on which provider its using.
 
-#### AWS
+### AWS
 We will use the `awscli` to configure and store our credentials. Once this is done, terraform will know where to find the credentials.
 
 On the AWS page, after you've logged in, `click on your email > Security Credentials > Access keys > Create New Access Key`.
@@ -88,7 +79,7 @@ aws_access_key_id = ...
 aws_secret_access_key = ...
 ```
 
-### Creating Our First Terraform File
+## Creating Our First Terraform File
 The convention is to name your file `main.tf`, which will be the entrypoint.
 Here is a simple configuration file:
 
@@ -116,7 +107,7 @@ This will create:
  * `.terraform` folder
  * `.terraform.lock.hcl` file
 
-### Plan
+## Plan
 
 The `terraform plan` command creates an execution plan, which lets you preview the changes that Terraform plans to make to your infrastructure.
 
@@ -126,7 +117,7 @@ The `terraform plan` command creates an execution plan, which lets you preview t
 
 The plan command alone will not actually carry out the proposed changes, and so you can use this command to check whether the proposed changes match what you expected before you apply the changes or share your changes with your team for broader review.
 
-### Apply
+## Apply
 The `terraform apply` command executes the actions proposed in a Terraform plan.
 Before running apply, `terraform plan` will be executed and terraform will ask the user again for a confirmation before carrying out the changes.
 
@@ -139,10 +130,10 @@ Terraform has compared your real infrastructure against your configuration and
 found no differences, so no changes are needed.
 ```
 
-### Destroy
+## Destroy
 `terraform destroy` will destroy the resources which terraform created.
 
-### Plan with Output File
+## Plan with Output File
 By default the `terraform plan` command just outputs the plan and does not remember or save it anywhere.
 You can use the `-out=...` flag to output the plan into a file.
 The best practice is to use the `.tfplan`
@@ -150,7 +141,7 @@ The best practice is to use the `.tfplan`
 
 Now you can use that exact plan to make your changes `terraform apply ./myplan.tfplan` 
 
-### Resource names
+## Resource names
 
 ```
 resource "type" "name" {
@@ -175,18 +166,18 @@ resource "aws_instance" "my_app_server" {
 
 Now when we do a `terraform apply`, it will do an **update in-place** and will only change the name of the EC2 instance from `-` to `my_app_server`
 
-### Destructive Changes 
+## Destructive Changes 
 Not all changes are modifications. If you want to change the tag of a currently running resource, it can be done **in-place** without destroying the resource.
 But some changes cannot be made in-place. For example if you want to change the AMI, a `terraform plan` will show you `Plan: 1 to add, 0 to change, 1 to destroy`. Meaning it first has to destroy and then add the resource again.
 
 
-### Overview
+## Overview
 
 ![terraform-overview](./images/terraform-overview.jpg)
 
 You can think of the AWS provider as a plugin which knows how to interpret and work with the aws provider block. Terraform, using this provider reads the `main.tf` and the credentials and then will call the right AWS API which then will create the wanted resources.
 
-### Folder Structure
+## Folder Structure
 
  * `.terraform/`
  * `terraform.tfstate`
@@ -252,7 +243,7 @@ Version constraints within the configuration itself determine which versions of 
 
 At present, the dependency lock file tracks **only provider dependencies**. Terraform does not remember version selections for remote modules, and so Terraform will always select the newest available module version that meets the specified version constraints. You can use an exact version constraint to ensure that Terraform will always select the same module version.
 
-### The `terraform` block
+## The `terraform` block
 The `terraform` block in the main configuration:
  * configures all terraform settings
  * "Expected" terraform version. This is important because in some versions (0.12) there were some breaking changes to terraform.
@@ -286,7 +277,7 @@ terraform {
    * Full soure address: `registry.terraform.io/hashicorp/aws`
 
 
-### HCL Syntax
+## HCL Syntax
 The goal of HCL code is to represent infrastructure objects.
 Every infrastructure object is respresented using blocks.
 
@@ -312,7 +303,7 @@ tags = {
   }
 ```
 
-### Variables
+## Variables
 ```
 variable "app_tag_name" {
     description = "Name tag of the application"
@@ -399,7 +390,7 @@ ami_id = "ami-xyz"
 
 **Using `default` vs `terraform.tfvars`**: they mean different things. Providing a default value means that if nothing was provided, the default should be used but if you put the value in `terraform.tfvars`, you explicitly say that you are providing a value and even if a default exists, it should be overwritten. So, you should still use the `default` keyword if necessary.
 
-### Data Types
+## Data Types
  * **string**
  * **number**
  * **bool**
@@ -424,7 +415,7 @@ ami_id = "ami-xyz"
 
 
 
-### Loops
+## Loops
 ```python
 variable "bucket_names" {
   type = list(string)
@@ -437,7 +428,7 @@ resource "aws_s3_bucket" "app_image_buckets" {
 }
 ```
 
-### Count property
+## Count property
 It's a meta property of a terraform resource. Every terraform resource has a count property which allows you to specify how many of this resource you need.
 
 To create 3 AWS S3 buckets:
@@ -457,7 +448,7 @@ resource "aws_s3_bucket" "b" {
 }
 ```
 
-### Data Sources (Data Variables)
+## Data Sources (Data Variables)
 Data sources allow Terraform to use information defined outside of Terraform, defined by another separate Terraform configuration, or modified by functions.
  * Each provider may offer data sources alongside its set of resource types.
 
@@ -497,7 +488,7 @@ data "aws_ami" "latest_ubuntu" {
  * You might want to avoid depending on data which might change and stick to what you defined.
 
 
-### Dependencies with Resources
+## Dependencies with Resources
 For example, if you have 2 resources which don't depend on eachother (EC2 and S3 Bucket), by default they will be created in parallel. But in the previous example, the `aws_instance` was using the id of a `aws_security_group`, which means the security group needs to be created first and then the EC2 instance.
 Terraform is aware of these implicit dependecies.
  * By default API calls happen in parallel if no dependencies
@@ -515,7 +506,7 @@ resoruce "aws_s3_bucket" "images_backup" {
 }
 ```
 
-#### Terraform Graph
+### Terraform Graph
 Terraform manages these dependencies using an internal graph.
 You can use `terraform graph` to get a JSON stucture of the dependency graph.
 If you need a graphical representation, you can use an online editor like [edotor.net](https://edotor.net/) or a VS Code extension like Graphviz and paste the JSON.
@@ -523,12 +514,12 @@ If you need a graphical representation, you can use an online editor like [edoto
 ![tf-graph](./images/tf-graph.jpg)
 
 
-### Real World Terraform
+## Real World Terraform
 
  * Multiple environments
  * Multiple developers
 
-#### Dealing with Multiple Environments
+### Dealing with Multiple Environments
 Both of these are possible solutions:
  * **Separate folders for each environment**: the simplest solution but this possibly mean duplicating a lot of configuration. That duplication could be mitigated by using **modules**.
  * **Terraform Workspaces**
@@ -555,7 +546,7 @@ resource "aws_instance" "example" {
 }
 ```
 
-#### Dealing with Multiple Developers in a Team
+### Dealing with Multiple Developers in a Team
 When you run your terraform config, it creates the state file `terraform.tfstate` on your machine. How do you work together with a team using that file?
 
 The solution is to have one `terraform.tfstate` file which all developers can work with at the same time.
@@ -566,7 +557,7 @@ One option is to check this file in source control and the other developers will
 
 The solution is **remote state with locking**. A common shared remote location where the state file will reside and will only be accessed by one person each time. Each terraform command will work with that remote state file.
 
-#### Setup remote backend
+### Setup remote backend
  1. Setup an S3 bucket to hold the sate file
  2. Setup a DynamoDb to support locking
  3. Configure the AWS provider to use these two
@@ -603,7 +594,7 @@ The DynamoDB attribute and the hash_key **must be named exactly** `LockID`, anyt
 > Be careful when doing a `terraform destroy`, it might delete some resources (like the dynamoDB) but not delete the S3 bucket
 > This might give you errors with locking since the DB is gone. You can use the `-lock=false` flag to ignore locking.
 
-### Modules
+## Modules
 You can bundle code as modules and reuse those modules.
  * A terraform module is a folder with `.tf` files
 
@@ -636,7 +627,7 @@ variable "bucket_id" {
 }
 ```
 
-#### Module Registry
+### Module Registry
 One of the biggest benefits of modules is that you can reuse modules from other people.
  * https://registry.terraform.io/browse/modules
 
@@ -653,7 +644,7 @@ module "vpc" {
 }
 ```
 
-### Provisioners
+## Provisioners
 You can also integrate different provisioners like Ansible, Puppet, Chef etc. with terraform.
 Example code: [./provisioners-ansible](./provisioners-ansible/)
 
@@ -663,7 +654,7 @@ resource "aws_instance" "nginx" {
   instance_type          = "t2.micro"
   vpc_security_group_ids = [aws_security_group.ansible_allow_port_22_and_80.id]
   # a key pair with this name must be present in your aws account
-  key_name = "ansible-example"
+  key_name = var.key_pair_name
 
   provisioner "remote-exec" {
     inline = ["echo 'this will be executed on the remote server once the connection (defined below) is ready'"]
@@ -692,7 +683,6 @@ The important points here:
 
 
 ### TODO
- * Terraform provisioners simple example with ansible
  * AWS don't use the root user to do everything, create a restricted user.
  * What should we check into source control?
  * Terratest, localstack

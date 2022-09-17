@@ -28,18 +28,37 @@ resource "aws_s3_bucket" "terraform_app_state" {
   }
 
   # *** DEPRECATED *** Use the aws_s3_bucket_server_side_encryption_configuration resource instead
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
+  # server_side_encryption_configuration {
+  #   rule {
+  #     apply_server_side_encryption_by_default {
+  #       sse_algorithm = "AES256"
+  #     }
+  #   }
+  # }
 
   # *** DEPRECATED ***, use the aws_s3_bucket_versioning resource instead
 #   versioning {
 #     enabled = true
 #   }
+}
+
+# Versioning
+resource "aws_s3_bucket_versioning" "versioning_example" {
+  bucket = aws_s3_bucket.terraform_app_state.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# Encryption
+resource "aws_s3_bucket_server_side_encryption_configuration" "encryption_example" {
+  bucket = aws_s3_bucket.terraform_app_state.bucket
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
 }
 
 resource "aws_dynamodb_table" "terraform_state_lock" {

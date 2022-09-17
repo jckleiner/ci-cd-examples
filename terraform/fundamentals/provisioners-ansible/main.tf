@@ -1,8 +1,3 @@
-locals {
-  key_name         = "ansible-example"
-  private_key_path = "~/Downloads/${local.key_name}.pem"
-}
-
 provider "aws" {
   profile = "default"
   region  = "eu-central-1"
@@ -45,7 +40,7 @@ resource "aws_instance" "nginx" {
   instance_type          = "t2.micro"
   vpc_security_group_ids = [aws_security_group.ansible_allow_port_22_and_80.id]
   # a key pair with this name must be present in your aws account
-  key_name = "ansible-example"
+  key_name = var.key_pair_name
 
   provisioner "remote-exec" {
     inline = ["echo 'this will be executed on the remote server once the connection (defined below) is ready'"]
@@ -71,4 +66,14 @@ data "aws_vpc" "default" {
 output "public_ip" {
   value       = aws_instance.nginx.public_ip
   description = "The public IP address of my web server"
+}
+
+# required to pass in
+variable "key_pair_name" {
+    description = "Name of the key pair created in AWS"
+    type = string
+}
+
+locals {
+  private_key_path = "~/Downloads/${var.key_pair_name}.pem"
 }

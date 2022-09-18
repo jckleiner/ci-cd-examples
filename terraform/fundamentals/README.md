@@ -1,5 +1,9 @@
 # Terraform
 
+Some resources used:
+ * Javabrains
+ * https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa
+
 ## What is DevOps?
 Before DevOps, there were the operations team and the developer team. The dev team were responsible of developing the code and the ops team were responsible of deploying and making sure that the code was running properly.
 
@@ -677,6 +681,55 @@ resource "aws_instance" "nginx" {
 The important points here:
  * We can use `remote-exec` and `local-exec` to wait until the SSH is ready and then execute our scripts
  * A key pair must be already present on your AWS account and on your machine.
+
+## Extermal State File and Multiple Environments
+
+ 1. **Isolation via workspaces**: useful for quick, isolated tests on the same configuration.
+ 2. **Isolation via file layout**: useful for production use-cases where you need strong separation between environments.
+
+### Isolation via workspaces
+
+When you setup a remote backend for your state file in multiple workspaces, terraform creates an `env:` folder and puts all non-default workspaces in there.
+Lets say you defined a backend like this: 
+
+```python
+terraform {
+  backend "s3" {
+    bucket         = "terraform-up-and-running-state"
+    key            = "workspaces-example/terraform.tfstate"
+    region         = "us-east-2"
+    dynamodb_table = "terraform-up-and-running-locks"
+    encrypt        = true
+  }
+}
+```
+
+and ran `terraform init`. Then created 2 more workspaces and initialized this remote backend again for each.
+The S3 bucket will have the following structure:
+
+ * `workspaces-example/terraform.tfstate`: default workspace, the value of `key` in the `backend` block
+ * `env:/example1/workspaces-example/terraform.tfstate`
+ * `env:/example2/workspaces-example/terraform.tfstate`
+
+Terraform workspaces can be a great way to quickly spin up and tear down different versions of your code, but they have a few drawbacks:
+
+ 1. The state files for all of your workspaces are stored in the same backend (e.g., the same S3 bucket). That means you use the same authentication and access controls for all the workspaces, which is one major reason workspaces are an unsuitable mechanism for isolating environments (e.g., isolating staging from production).
+ 2. Workspaces are not visible in the code or on the terminal unless you run terraform workspace commands. When browsing the code, a module that has been deployed in one workspace looks exactly the same as a module deployed in ten workspaces. This makes maintenance harder, as you don’t have a good picture of your infrastructure.
+ 3. Putting the two previous items together, the result is that workspaces can be fairly error prone. The lack of visibility makes it easy to forget what workspace you’re in and accidentally make changes in the wrong one (e.g., accidentally running terraform destroy in a “production” workspace rather than a “staging” workspace), and since you have to use the same authentication mechanism for all workspaces, you have no other layers of defense to protect against such errors.
+
+### Isolation via file layout
+To get full isolation between environments, you need to:
+
+ 1. Put the Terraform configuration files for each environment into a separate folder. For example, all the configurations for the staging environment can be in a folder called `stage` and all the configurations for the production environment can be in a folder called `prod`.
+ 2. Configure a different backend for each environment, using different authentication mechanisms and access controls (e.g., each environment could live in a separate AWS account with a separate S3 bucket as a backend).
+
+### The terraform_remote_state data source
+TODO - https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa
+
+## Multiple Environments With File Structure
+
+
+
 
 ### ...
 

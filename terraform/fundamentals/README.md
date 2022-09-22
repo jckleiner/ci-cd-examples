@@ -463,6 +463,20 @@ resource "aws_s3_bucket" "b" {
 }
 ```
 
+You can use `count` to conditionally create resources:
+
+```python
+resource "aws_s3_bucket_versioning" "bucket_versioning" {
+  # Count can be used to conditionally create a resource
+  count = var.enable_versioning == true ? 1 : 0
+  
+  bucket = aws_s3_bucket.s3_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+```
+
 ## Data Sources (Data Variables)
 Data sources allow Terraform to use information defined outside of Terraform, defined by another separate Terraform configuration, or modified by functions.
  * Each provider may offer data sources alongside its set of resource types.
@@ -612,8 +626,18 @@ The DynamoDB attribute and the hash_key **must be named exactly** `LockID`, anyt
 ## Modules
 You can bundle code as modules and reuse those modules.
  * A terraform module is a folder with `.tf` files
+ * Terraform ignores subfolders by default
 
-Terraform ignores subfolders by default
+Possible sources of modules:
+ * Local paths
+ * Terraform registry
+ * GitHub (HTTPS or SSH)
+ * Bitbucket
+ * Generic Git, Mercurial repositories
+ * HTTP Urls
+ * S3 buckets
+ * GCS buckets
+
 Whenever you add `module` to your `.tf` file, you need to do a `terraform init` so Terraform can install/fetch the module
  * After init, a `.terraform/modules/modules.json` will be created which contains information about the modules used in this project.
 
@@ -641,6 +665,42 @@ variable "bucket_id" {
     type = string
 }
 ```
+
+### What makes a good module?
+ * Groups resources and raises the abstraction level from the resource types in a logical fashion. Modules can be built from a thin wrapper around a resource to a mega module which contains everything. You need to find the correct abstraction level for your use case.
+ * Expose input variables to allow necessary customization + composition
+ * Provide useful defaults so if the user does not enter a value, a local value is used instead
+ * Return outputs to make further integrations possible
+
+You can access module output variables the same way as resource output attributes. The syntax is: `module.<MODULE_NAME>.<OUTPUT_NAME>`.
+
+For example, if the module `frontend` defined an output variable named `asg_name` it can be accessed like so: `module.frontend.asg_name`
+
+### Versioned modules
+If both your staging and production environment are pointing to the same module folder, then as soon as you make a change in that folder, it will affect both environments on the very next deployment. This sort of coupling makes it harder to test a change in staging without any chance of affecting production. A better approach is to create versioned modules so that you can use one version in staging (e.g., v0.0.2) and a different version in production (e.g., v0.0.1).
+
+An easy way to version your modules is to give to your modules repository git version numbers:
+
+    $ git tag -a "v0.0.1" -m "First release of webserver-cluster module"
+
+An then reference to the specific version like so:
+
+```python
+module "webserver_cluster" {
+  # if the repo is public
+  source = "github.com/foo/modules//webserver-cluster?ref=v0.0.1"
+  # if the repo is private
+  # source = "git::git@github.com:<OWNER>/<REPO>.git//<PATH>?ref=<VERSION>"
+  source = "git::git@github.com:gruntwork-io/terraform-google-gke.git//modules/gke-cluster?ref=v0.1.2"
+  cluster_name  = "webservers-staging"
+}
+```
+
+You can either use a **single repository** where you put your modules and your other Terraform code or another approach is to **use 2 (or more) separate repositories** `modules` and `live` (for example). Main reasons for our suggestion of multiple repositories is:
+
+ 1. It's a bit confusing for a repo to refer to different versions of itself.
+ 2. If you have a large and complicated infrastructure and use lots of modules, that repository might get too massive and the tests can become too slow. E.g., you could put the code for ELK, Kafka, ZooKeeper, InfluxDB, Couchbase, Vault, Consul, etc in separate repos.
+ 3. If 2 different teams are responsible for these repositories. One team develops and maintains the `modules` repo and the other the `live` repo. Then it could be beneficial, also for access-control reasons.
 
 ### Module Registry
 One of the biggest benefits of modules is that you can reuse modules from other people.
@@ -738,8 +798,65 @@ To get full isolation between environments, you need to:
 TODO - https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa
 
 ## Multiple Environments With File Structure
-TODO
+To get full isolation between environments, you need to:
 
+ 1. Put the Terraform configuration files for each environment into a separate folder. For example, all the configurations for the staging environment can be in a folder called stage and all the configurations for the production environment can be in a folder called prod.
+ 2. Configure a different backend for each environment, using different authentication mechanisms and access controls (e.g., each environment could live in a separate AWS account with a separate S3 bucket as a backend).
+
+With this approach, the use of separate folders makes it much clearer which environments you are deploying to, and the use of separate state files, with separate authentication mechanisms, makes it significantly less likely that a screw up in one environment can have any impact on another.
+
+In fact, you may want to take the isolation concept beyond environments and down to the “component” level, where a component is a coherent set of resources that you **typically deploy together**. For example, once you’ve set up the basic network topology for your infrastructure—in AWS lingo, your Virtual Private Cloud (VPC) and all the associated subnets, routing rules, VPNs, and network ACLs, you **will probably only change it once every few months**, at most. On the other hand, you may deploy a new version of a web server multiple times per day. If you manage the infrastructure for both the VPC component and the web server component in the same set of Terraform configurations, you are **unnecessarily putting your entire network topology at risk of breakage** (e.g., from a simple typo in the code or someone accidentally running the wrong command) multiple times per day.
+
+Therefore, I recommend using separate Terraform folders (and therefore separate state files) for **each environment (staging, production, etc.)** and **for each component (vpc, services, databases)**. 
+
+```
+live
+  └ test
+      └ vpc
+      └ services
+          └ frontend-app
+          └ backend-app
+      └ data-storage
+          └ mysql
+          └ redis
+  └ prod
+      └ vpc
+      └ services
+          └ frontend-app
+          └ backend-app
+      └ data-storage
+          └ mysql
+          └ redis
+  └ mgmt
+      └ vpc
+      └ services
+          └ bastion-host
+          └ jenkins
+  └ global
+      └ iam
+      └ s3
+
+modules
+  └ data-stores
+       └ mysql
+       └ redis           
+  └ mgmt
+       └ vpc           
+       └ jenkins           
+  └ security
+       └ iam
+       └ s3
+       └ bastion-host
+  └ services
+       └ webserver-cluster
+```
+The `modules` folder contains all the reusable modules. These modules could also be a separate repository (see [Versioned modules](#versioned-modules))
+and the `live` folder contains the configuration for the separate environments.
+
+ * **test (or dev or staging)**: An environment for pre-production workloads (i.e., testing).
+ * **prod**: An environment for production workloads (i.e., user-facing apps).
+ * **mgmt**: An environment for DevOps tooling (e.g., bastion host, Jenkins).
+ * **global**: A place to put resources that are used across all environments (e.g., S3, IAM).
 
 
 ## Managing secrets in your Terraform code
@@ -918,6 +1035,19 @@ while a secret store has much more functionality and holds the secrets itself.
 For instance, the DB username and passwords are our secrets. We could either encrypt them with a key from KMS, check it into source control and decrpyt it each time we want to use it (fetching that key from KMS), or we could put that username and password directly into a secret store and retrieve it from there.
 
 The adventage of a secret store is you will have functionalities like the ability to revoke, rotate secrets, have an access log etc.
+
+## The Golden Rule of Terraform
+Here’s a quick way to check the health of your Terraform code: 
+ * go into your live repository, pick several folders at random, and run terraform plan in each one. 
+ 
+If the output is always, “no changes,” that’s great, as it means your infrastructure code matches what’s actually deployed. If the output sometimes shows a small diff, and you get the occasional excuse from your team members (“oh, right, I tweaked that one thing by hand and forgot to update the code”), then your code doesn’t match reality, and you may soon be in trouble. If terraform plan fails completely with weird errors, or every plan shows a gigantic diff, then your Terraform code has no relation at all to reality, and is likely useless.
+
+The gold standard, or what you’re really aiming for, is what I call the The Golden Rule of Terraform:
+
+> The master branch of the live repository should be a 1:1 representation of what’s actually deployed in production.
+
+ * never make out-of-band changes (via a web UI, or manual API calls, or any other mechanism)
+ * You should only have to look at a single branch to understand what’s actually deployed in **production**. Typically, that branch will be `master`.
 
 ## ...
 

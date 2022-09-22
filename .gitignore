@@ -64,4 +64,3 @@ ansible-and-vagrant
 .terraform*
 terraform.tfstate
 terraform.tfstate.*
-terraform.tfvars

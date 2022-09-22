@@ -71,6 +71,40 @@ providers now provide managed Kubernetes services, which can offload some of thi
 
 
 
+## Secret Management Problem
+A secret in this context is anything that grants you autorization and or authentication.
+Secrets management is the process of securely and efficiently managing the creation, rotation, revocation, and storage of digital authorization credentials. In a way, secrets management can be seen as an enhanced version of password management. While the scope of managed credentials is larger, the goal is the same — to protect critical assets from unauthorized access.
+
+There are four main phases a password or other secret can go through:
+ * Creation
+ * Storage     
+ * Rotation
+ * **Revocation**: Being able to revoke user credentials is one of the key NIST requirements. Revoking secrets should be a standard response to an employee’s resignation, the expiration of an agreement with a third-party vendor, failed authorization attempts, etc.
+
+In practice you see a **secret sprawl**, meaning that the secrets used in the systems are everywhere. In plain text inside of the source code, configuration management (ansible etc.), CI/CD server etc.
+Some problems arises with this approach:
+ * **No fine grained ability to give and audit the access**: We don't know who has access to our infrastructure. We don't know if someone has access to our GitHub and see our source code and therefore our secrets. Even if they could do it, we can't be sure if they have done it. No audit trail.
+ * **No easy rotation**: It's difficult to rotate the secrets when they are so spread accross.
+
+These 2 problems can be solved by centralizing the secrets.
+
+In general, applications do a poor job keeping things secret. The credentials could be printed to stoud at some point and will end up in the logs somewhere in plain text for instance.
+
+This can be solved by using dynamic secrets, short lived ephemeral secrets.
+ * **Short lived (for example 30 days)**. Even if they leak to some other system, it will be not valid after some time.
+ * **Each credential is unique to each client**. In our previous example, if we have 50 web servers who share the same DB credentials and the password leaks, its difficult to pin-point from where exactly the secret leaked out. If dynamic secrets were in use, each server would have a unique credential. So we would know exactly which server was compramised.
+ * **Easy revocation**: Since now we know that the server 42 were compamised, it is super easy to revoke the credentials just for server 42. If each server used the same credentials, we had to change it and the entire system would have an outage. So the **blast radius** of a revocation is much larger if you have a shared secret vs a dynamic secret.
+
+Hashicorp Vault provides also endpoints for you to do encryption so that the application doesnt need to implement all the details itself.
+
+### Bad practices
+Weak passwords.
+Storing secrets in plain text
+Sharing passwords
+No secrets revocation
+No secrets rotation
+Reusing secrets: Using the same secret for different accounts, services, or applications
+
 ## ...
 
 ## TODO

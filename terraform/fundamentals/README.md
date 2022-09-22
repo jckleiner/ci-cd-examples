@@ -216,16 +216,11 @@ This won't modify your real remote objects, but it will modify the Terraform sta
 You shouldn't typically need to use this command, because Terraform automatically performs the same refreshing actions as a part of creating a plan in both the `terraform plan` and `terraform apply` commands. This command is here primarily for backward compatibility, but **we don't recommend using it** because it provides no opportunity to review the effects of the operation before updating the state.
 
 ##### Sensitive Data in State
-
 Terraform state **can contain sensitive data**, depending on the resources in use and your definition of "sensitive." The state contains resource IDs and all resource attributes. For resources such as databases, this may contain initial passwords.
 
 When using local state, state is stored in plain-text JSON files.
 
 When using remote state, state is only ever held in memory when used by Terraform. It may be encrypted at rest, but this depends on the specific remote state backend.
-
-
-
-
 
 #### terraform.tfstate.backup
 Serves as a backup. Each time `terraform.tfstate` is updated, the old file will be moved to `terraform.tfstate.backup`. So it's like having a commit history of of 2 commits.
@@ -308,6 +303,16 @@ tags = {
 ```
 
 ## Variables
+
+ * **Input variables**: Can be seen as input parameters. If no default value is given, then they it means they are required for you to pass in.
+ * **Local variables**: Used only locally to avoid duplicating values. Values cannot be passed in or overwritten.
+ * **Output variables**: These are the "return values" of functions/resources. For instance, you can get the IP address of an EC2 instance after its provisioned.
+   Output variables can be used to map data between resources. If you need to wait for the IP of a resource to setup your firewall rule, 
+   you can use output variables for that.
+
+### Input Variables
+Values which are provided by you and used by the provider.
+
 ```
 variable "app_tag_name" {
     description = "Name tag of the application"
@@ -341,10 +346,15 @@ When you don't have a default value for a variable, you need to assign it. This 
  2. Pass the value with CLI arguments when running the command `terraform plan -var "ami_id=ami-1234"`
  3. Use environment variables `TF_VAR_<var_name>=`. For example `export TF_VAR_ami_id=ami-1234`
 
-#### Input Variables
-Values which are provided by you and used by the provider
+Order of precedence (highest to lowest):
+ 1. Command line `-var` or `-var-file`
+ 2. `*.auto.tfvars` file
+ 3. `terraform.tfvars` file
+ 4. `TF_VAR_<name>` environment variable
+ 5. Default value in the declaration block
+ 6. Manual entry during plan/apply
 
-#### Output Variables
+### Output Variables
 When terraform gets data from the provider and sends it to you. For example to reach an EC2 instance, we needed to go to the AWS-UI to find out the Public IP address of the server. This can be accessed in the terraform console with an output variable.
 
 ```
@@ -368,7 +378,7 @@ Having this block will print out the value by default to the console when runnin
  * `terraform output` to print only all the output variables
  * The output variables are saved to the state file after do an apply. When you introduced a new output variable it won't be accessible until you do `terraform apply` or `terraform refresh` 
 
-#### Local Variables
+### Local Variables
 If all you need is to avoid duplicating values and you don't want it to be overwritten by the CLI or environment variables, you can use local variables.
 
 ```
@@ -379,12 +389,13 @@ locals {
 # usage
 port = local.http_port
 ```
-#### Variables Best Practices
-Recommended is to create a `variable.tf` or `output.tf` file to store your variables and not have them defined in your main tf file. This way you can quickly see what are all the required values that you need to provide (`variable.tf`).
 
- * The name of the file does not matter as long as it is in the root directory.
+### Variables Best Practices
+> Terraform does not ascribe any special meaning to which filenames you use and how many files you have. Terraform instead reads all of the `.tf` files and considers their contents together. Therefore you can freely move the blocks from your main.tf file into as many separate `.tf` files in the same directory as you like, and Terraform will consider the configuration to be exactly equivalent as long as you change nothing in the contents of those blocks while you do it
 
-Furthermore, you can create a `terraform.tfvars` file and put all the default values of your variables there in a  `key = "value"` format:
+Recommended is to create a `variables.tf` or `outputs.tf` file to store your variables and not have them defined in your main tf file. This way you can quickly see what are all the required values that you need to provide (`variables.tf`).
+
+Furthermore, you can create a `terraform.tfvars` file and put all the **non-sensitive** values of your variables there in a  `key = "value"` format:
 
 ```bash
 app_tag_name = "my_super_app"
@@ -566,7 +577,7 @@ The solution is **remote state with locking**. A common shared remote location w
  2. Setup a DynamoDb to support locking
  3. Configure the AWS provider to use these two
 
-Example code: [main.tf](./external-state/main.tf)
+Example code: [main.tf](./external-state-s3/main.tf)
 
 The s3 bucket needs to be created/present before running `terraform init` or else Terraform will complain `Error: Failed to get existing workspaces: S3 bucket does not exist. The referenced S3 bucket must have been previously created`.
 
@@ -727,15 +738,190 @@ To get full isolation between environments, you need to:
 TODO - https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa
 
 ## Multiple Environments With File Structure
+TODO
 
 
 
+## Managing secrets in your Terraform code
+ 1. Pre-requisite #1: Don’t Store Secrets in Plain Text
+ 2. Pre-requisite #2: Keep Your Terraform State Secure
+ 3. Technique #1: Environment Variables
+ 4. Technique #2: Encrypted Files (e.g., KMS, PGP, SOPS)
+ 5. Technique #3: Secret Stores (e.g., Vault, AWS Secrets manager)
 
-### ...
+![comparison-passing-secrets.png](./images/comparison-passing-secrets.png)
+
+### Pre-requisite #1: Don’t Store Secrets in Plain Text
+Storing secrets in plain text in version control is a BAD IDEA. Here are just a few of the reasons why:
+
+ 1. Anyone who has access to the version control system has access to that secret.
+ 2. Every computer that has access to the version control system keeps a copy of that secret.
+ 3. Every piece of software you run has access to that secret.
+ 4. No way to audit or revoke access to that secret.
+
+### Pre-requisite #2: Keep Your Terraform State Secure
+The secret you pass in will still end up in `terraform.tfstate` in plain text! This has been an open issue for more than [8 years now](https://github.com/hashicorp/terraform/issues/516), with no clear plans for a first-class solution.
+ * Store Terraform state in a backend that supports encryption.
+ * Strictly control who can access your Terraform backend.
+
+### Technique #1: Environment Variables
+You can define variables and mark them as `sensitive` and then set the `TF_VAR_<name>` environment variable before running your terraform command.
+
+```python
+variable "password" {
+  description = "The password for the DB master user"
+  type        = string
+  sensitive   = true
+}
+```
+
+> if you have the `HISTCONTROL` environment variable set correctly in a Bash terminal, then any command with a leading space will not be stored in Bash history. 
+> Use this when setting environment variables with secrets to avoid having those secrets stored on disk.
+
+#### Drawbacks
+ * Not everything is defined in the Terraform code itself. This makes understanding and maintaining the code harder.
+ * Everyone using your code has to know to take extra steps to either manually set these environment variables or run a wrapper script.
+ * No guarantees or opinions around security. Since all the secrets management happens outside of Terraform, the code doesn’t enforce any security properties, and it’s possible someone is still managing the secrets in an insecure way (e.g., storing them in plain text).
+
+### Technique #2: Encrypted Files (e.g., KMS, PGP, SOPS)
+The second technique relies on encrypting the secrets, storing the cipher text in a file, and checking that file into version control.
+
+To encrypt some data, such as some secrets in a file, you need an encryption key. This key is itself a secret! This creates a bit of a conundrum: how do you securely store that key? You can’t check the key into version control as plain text, as then there’s no point of encrypting anything with it. You could encrypt the key with another key, but then you then have to figure out where to store that second key. So you’re back to the "kick the can down the road problem," as you still have to find a secure way to store your encryption key.
+
+The most common solution to this conundrum is to store the key in a key service provided by your cloud provider, such as:
+
+ * AWS KMS
+ * GCP KMS
+ * Azure Key Vault
+
+These key services solve the "kick the can down the road" problem by relying on human memory: in this case, your ability to memorize a password that gives you access to your cloud provider (or perhaps you store that password in a password manager and memorize the password to that instead).
+
+#### An example using AWS KMS
+Here's an example of how you can use a key managed by AWS KMS to encrypt secrets (see [./passing-secrets-with-aws-kms/](./passing-secrets-with-aws-kms/)). 
+
+First, go to https://eu-central-1.console.aws.amazon.com/kms/home and create a key,
+then create a file called `db-creds.yml` with your secrets:
+
+```python
+# Note: do NOT check this file into version control!
+username: admin
+password: password
+```
+
+Next, encrypt this file by using the aws kms encrypt command and writing the resulting cipher text to db-creds.yml.encrypted
+
+```bash
+aws kms encrypt \
+  --key-id <YOUR KMS KEY> \
+  --region <AWS REGION> \
+  --plaintext fileb://db-creds.yml \
+  --output text \
+  --query CiphertextBlob \
+  > db-creds.yml.encrypted
+```
+
+You can now safely check db-creds.yml.encrypted into version control.
+
+To decrypt the secrets from this file in your Terraform code, you can use the `aws_kms_secrets` data source (for GCP KMS or Azure Key Vault, you’d instead use the `google_kms_secret` or `azurerm_key_vault_secret` data sources, respectively):
+
+```python
+data "aws_kms_secrets" "creds" {
+  secret {
+    name    = "db"
+    payload = file("${path.module}/db-creds.yml.encrypted")
+  }
+}
+```
+
+The code above will read `db-creds.yml.encrypted` from disk and, assuming you have permissions to access the corresponding key in KMS, decrypt the contents to get back the original YAML. You can parse the YAML as follows:
+
+```python
+locals {
+  db_creds = yamldecode(data.aws_kms_secrets.creds.plaintext["db"])
+}
+```
 
 
+And now you can read the username and password from that YAML and pass them to the aws_db_instance resource:
+```python
+resource "aws_db_instance" "example" {
+  engine               = "mysql"
+  engine_version       = "5.7"
+  instance_class       = "db.t2.micro"
+  name                 = "example"  # Set the secrets from the encrypted file
+  username = local.db_creds.username
+  password = local.db_creds.password
+}
+```
 
-### TODO
+When you run `terraform apply` in the sample project [./passing-secrets-with-aws-kms/](./passing-secrets-with-aws-kms/) you will see that the decryption happens automatically without Terraform asking you which KMS key ID you want to use and the secrets are printed onto the console in the tags string.
+Normally you would expect for terraform to ask which KMS key to use for decryption, but (I think) Terraform uses the **AWS CLI kms decrypt command** under the hood and the AWS [AWS CLI kms decrypt command documentation](https://docs.aws.amazon.com/cli/latest/reference/kms/decrypt.html) states:
+
+> If the ciphertext was encrypted under a symmetric encryption KMS key, the `KeyId` parameter is **optional**. KMS can get this information from metadata that it adds to the symmetric ciphertext blob. This feature adds durability to your implementation by ensuring that authorized users can decrypt ciphertext decades after it was encrypted, even if they've lost track of the key ID. However, specifying the KMS key is always recommended as a best practice.
+
+So which means that the ID of the used key is apperantly saved to the ciphertext and can be extracted from there.
+
+#### Making changes to the decrypted file
+One gotcha with this approach is that working with encrypted files is awkward. To make a change, you have to locally decrypt the file with a long aws kms decrypt command, make some edits, re-encrypt the file with another long aws kms encrypt command, and the whole time, be extremely careful to not accidentally check the plain text data into version control or leave it sitting behind forever on your computer. This is a tedious and error prone process—unless you use a tool like `sops` or `Terragrunt` (which intern uses `sops`).
+ 
+ * `sops` is an open source tool designed to make it easier to edit and work with files that are encrypted via AWS KMS, GCP KMS, Azure Key Vault, or PGP. sops can automatically decrypt a file when you open it in your text editor, so you can edit the file in plain text, and when you go to save those files, it automatically encrypts the contents again.
+
+#### Drawbacks
+ * Encrypting the data requires extra work. You either have to run lots of commands (e.g., aws kms encrypt) or use an external tool such as sops. There’s a learning curve to using these tools correctly and securely.
+ * The secrets are now encrypted, but as they are still stored in version control, rotating and revoking secrets is hard. If anyone ever compromises the encryption key, they can go back and decrypt all the secrets that were ever encrypted with it.
+ * Ability to audit who accessed secrets is minimal. If you’re using a cloud key management system (e.g., AWS KMS), it will likely maintain an audit log of who used a key to decrypt something, but you won’t be able to tell what was actually decrypted.
+ * Not as test friendly: when writing tests for your Terraform code (e.g., with Terratest), you will need to do extra work to encrypt data for your test environments.
+ * Most managed key services cost a small amount of money.
+
+### Technique #3: Secret Stores (e.g., Vault, AWS Secrets manager)
+The third technique relies on storing your secrets in a dedicated secret store: that is, a database that is designed specifically for securely storing sensitive data and tightly controlling access to it.
+
+Here a few of the more popular secret stores you can consider:
+
+ * HashiCorp Vault: Open source, cross-platform secret store.
+ * AWS Secrets Manager: AWS-managed secret store.
+ * AWS Param Store: AWS-managed data store that supports encryption.
+ * GCP Secret Manager: GCP-managed key/value store.
+
+These secret stores solve the “kick the can down the road” problem by relying on human memory: in this case, your ability to memorize a password that gives you access to your cloud provider (or multiple passwords in the case of Vault, as it uses Shamir’s Secret Sharing).
+
+#### An example using AWS Secrets Manager
+
+```python
+# Go to https://eu-central-1.console.aws.amazon.com/secretsmanager
+# Make sure its eu-central-1
+# create a secret with the name "db-creds"
+
+data "aws_secretsmanager_secret_version" "creds" {
+  secret_id = "db-creds"
+}
+
+locals {
+  db_creds = jsondecode(
+    data.aws_secretsmanager_secret_version.creds.secret_string
+  )
+}
+resource "aws_instance" "my_app_server" {
+  ami           = "ami-083e9f3cc36cb84a8" // ubuntu AMI
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "username:${local.db_creds.username}---password:${local.db_creds.password}"
+  }
+}
+```
+When you run `terraform plan`, you will see the secret values in the tags string.
+
+### The difference between a key management service (AWS KMS) and a secret store (Hashicorp Vault, AWS Secrets manager) 
+A KMS is a fundamental service which is used by many other AWS services and it just holds keys with which you encrypt stuff 
+while a secret store has much more functionality and holds the secrets itself.
+For instance, the DB username and passwords are our secrets. We could either encrypt them with a key from KMS, check it into source control and decrpyt it each time we want to use it (fetching that key from KMS), or we could put that username and password directly into a secret store and retrieve it from there.
+
+The adventage of a secret store is you will have functionalities like the ability to revoke, rotate secrets, have an access log etc.
+
+## ...
+
+## TODO
  * AWS don't use the root user to do everything, create a restricted user.
  * What should we check into source control?
  * Terratest, localstack

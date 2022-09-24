@@ -38,10 +38,52 @@ In contrast to this architecture, the diagram below illustrates the recommended 
 ## VPC and Subnets
 
 **Virtual private clouds (VPC)**: A VPC is a virtual network that closely resembles a traditional network that you'd operate in your own data center. After you create a VPC, you can add subnets.
+ - By default a **route table** is attached to your VPC which controls routing of outgoing network requests. 
+
+This VPC's CIDR is `172.31.0.0/16`
+
+![vpc-cidr](./images/vpc-cidr.jpg)
+
+And here you can see that this **routing table** is configured to route every destination inside `172.31.0.0/16` to `local`, which means any resource inside the VPC. Other requests will be routed to the **internet gateway** resource.
+
+![route-table-routes.jpg](./images/route-table-routes.jpg)
 
 **Subnets**: A subnet is a range of IP addresses in your VPC. A subnet must reside in a single Availability Zone. After you add subnets, you can deploy AWS resources in your VPC.
+ - You can control if instances in a subnet should get public IPs when they launch (`Auto-assign public IPv4 address -> Yes/No`).
+ - With **Network ACL's** you can control the network trafic on a subnet level. You can control which trafic may enter or leave a particular subnet. In contrast to security groups, which can control the trafic on an instance level.
+ - By default each subnet can access other subnets because all subnets get the default Netowrk ACL, which allows all outgoing and incoming trafic.
 
- - Can Subnets talk to eachother? Should I create different subnets for each environment or different VPC's? Should I use the default VPC or create a new one?
+You don't have options like **public subnet** or a **private subnet** on AWS. A subnet is a subnet. What makes it private or public is the network trafic configuration. If you want a private subnet, you could disable giving IP addresses to instances and also block outgoing traffic to the internet for example.
+Resources in the same VPC will still be able to connect to that private subnet via the internal IP addresses.
+ * If you want your private subnet resources (with no public IPs) to access the internet, you can redirect the outgoing trafic to a **NAT gateway (Network Address Translation)**, a service managed by AWS. A NAT gateway translates the internal IPs to public ones and forwards it to the internet gateway in order to send the request out to the internet. This way our private instances can access the internet while still not having public IP's, which means they won't be accessible from the outside by default.
+    * TODO not sure how this works under the hood. Are only the responses routed back to the private resources? Meaning they can be reached from the outside ONLY if they have sent a request and waiting for a response? 
+
+**NAT Gateway**: The same concept as our home network. Our devices do not have a public IP address, they just have internal/private IP addresses and when they request something, the trafic goes over the NAT gateway (router) to the internet. The response to that returns to the the router and there the NAT routing table is checked and that's how the response can then be routed to the correct device. Only the NAT gateway (or router in this case) has a public IP address.
+
+
+**Network Access Control List**: A network access control list (ACL) is an optional layer of security for your VPC that acts as a firewall for controlling traffic in and out of one or more subnets.
+ - TODO does NACL also apply to the VPC?
+
+Here is the default NACL which allows all outgoing and incoming trafic from and to subnets:
+
+![default-network-acl.jpg](./images/default-network-acl.jpg)
+
+ - TODO Should I create different subnets for each environment or different VPC's? Should I use the default VPC or create a new one?
+
+A VPC comes with the following resources attached to it:
+ * Subnets
+ * Route Tables
+ * Intenet gateways
+
+
+
+## EC2
+
+ * Each instance will be assigned a random IPv4 address. If you want a fixed IP address, you need to create an `Elastic IP`.
+ * Security groups are assigned to each instance which controls inbound and outbound traffic rules for that instance.
+ * Network ACL's are assigned to subnets and controls inbound and outbound traffic rules for that subnet.
+ * By default each account has the following resources: a VPC, 3 Subnets (in each AZ), a Network ACL, an internat gateway, route table
+
 
 ## Route 53
 

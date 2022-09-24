@@ -28,6 +28,13 @@ resource "aws_instance" "my_app_server" {
   ami           = var.ami_id // ubuntu AMI
   instance_type = "t2.micro"
   vpc_security_group_ids = [ aws_security_group.allow_port_8080.id ]
+
+  # the resource will be assigned to a default subnet if no ID is given
+  # subnet_id = 
+
+  # to be able to SSH into this instance
+  # a key pair with this name must be present in your aws account
+  # key_name = var.key_pair_name
   
   user_data     = <<-EOF
     #!/bin/bash

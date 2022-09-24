@@ -29,6 +29,10 @@ module "s3" {
  3. Use packer to create AMI's with the application included and then use those to spin up new EC2 instances
     - Immutable infrastructure, every EC2 instance using that AMI will be the exact same
  4. Use packer to create AMI's just to provision the server and then use Ansible to deploy the application
+ 5. Use 2 Packer AMI's: one is the server being provisioned without the application, lets say AMI-A, 
+    this image will be the base image for when you want to build an image including the newer versions of your application (AMI-B).
+    If anything should change on the server you rebuild AMI-A
+    If only the application changes then you just take AMI-A as the base image and build AMI-B
  5. Docker Image with the application built in, deploy to AWS Elastic Container Service (ECS)
     - Docker Layers are cached, so if only our application changes, docker build won't take too long
     - https://www.youtube.com/watch?v=zs3tyVgiBQQ

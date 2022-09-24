@@ -1,0 +1,41 @@
+---
+
+# The following error occurs (ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*), apperantly because the instance is not yet been finished booting:
+#   failed: E: Unable to correct problems, you have held broken packages.
+# https://github.com/hashicorp/packer/issues/8180
+# Using Ubuntu 18 solved the problem
+# TODO check if I can remove a step from here
+- name: Wait until the file /var/lib/cloud/instance/boot-finished is present before continuing
+  wait_for:
+    path: /var/lib/cloud/instance/boot-finished
+    sleep: 1
+
+- name: Pause for 10 seconds
+  ansible.builtin.pause:
+    seconds: 10
+
+- name: "Updating all installed packages"
+  apt:
+    upgrade: 'yes' # apt get update
+    update_cache: yes # run 'apt get update' before
+        
+- name: Make sure Nginx is installed and is at the latest version
+  become: true
+  apt:
+    name: nginx
+    state: latest
+
+- name: Make sure Nginx is running
+  systemd:
+    name: nginx
+    state: started
+
+- name: "Wait for ngix service port to open"
+  wait_for:
+    port: 80
+    timeout: 60
+
+- name: "Checking nginx http health endpoint"
+  uri:
+    url: "http://127.0.0.1"
+    timeout: 60

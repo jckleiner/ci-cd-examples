@@ -12,6 +12,7 @@ packer {
 }
 
 source "amazon-ebs" "ubuntu" {
+  # {{timestamp}} adds a timestamp
   ami_name      = "learn-packer-linux-aws-ansible-{{timestamp}}"
   instance_type = "t2.micro"
   region        = "eu-central-1"

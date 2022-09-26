@@ -1,5 +1,8 @@
 
 # Artifactory
+
+> Currently does not work on an M1 Macbook because the artifactory docker image does not have an arm64 version.
+
 Simple Docker Installation: https://www.jfrog.com/confluence/display/JFROG/Installing+Artifactory#InstallingArtifactory-DockerInstallation 
 You need to setup these directories once:
  1. make sure you are inside the `artifactory` folder

@@ -58,8 +58,6 @@ fabric.properties
 
 .env
 
-# TODO
-ansible-and-vagrant
 .vagrant
 .terraform*
 terraform.tfstate

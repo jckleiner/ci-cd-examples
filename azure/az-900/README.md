@@ -145,7 +145,36 @@ Two service categories:
 All regions and region paris are grouped into **geographies**. Each geohraphy describes a discrete market and typically contains two or more regions. Ensures data residency, sovereignty, resiliency and compliance requirements are met. Geographies are also fault tolerant to protect from region wide failures. Each region belongs to only to one geography.
 
 ## 8. Resources, Resource Groups & Resource Manager
+**Resource**: A manageable item that is available through Azure. Virtual machines, storage accounts, web apps, databases, and virtual networks are examples of resources. Resource groups, subscriptions, management groups, and tags are also examples of resources.
 
+A **resource group** is a logical container that holds related resources. The resource group can include all the resources for the solution, or only those resources that you want to manage as a group. You decide how you want to allocate resources to resource groups based on what makes the most sense for your organization. Generally, add resources that share the same lifecycle to the same resource group so you can easily deploy, update, and delete them as a group.
 
+You could organize resources into groups by:
+ * Type (all webapp instances into one group, all db instances into another)
+ * Lifecycle (dev and prod environment as different groups)
+ * Department
+ * Billing, location or a combination of those
 
-## ...
+Some other charasteristics:
+ * Each resource must be in one, and only one resource group
+ * Resource groups have their own location assigned. This location is only used to store metadata. For compliance reasons, you may need to ensure that your data is stored in a particular region.
+ * Resources in the resource groups can reside in different locations.
+ * Most resources can be moved between resource groups.
+ * Resource groups cannot be nested.
+ * You can configure the access control settings (permissions, roles etc.) for a resource group.
+
+Organize resource groups based on your organization needs but consider:
+ * Billing
+ * Security and access management
+ * Application lifecycle
+
+**Azure Resource Explorer ([www.resources.azure.com](www.resources.azure.com))**: Gives you an overview of all the resources and their JSON definitions. You can see all the properties of services you created. 
+ * A nice trick to navigate to a resource directly: Go to the resource on the Azure browser, copy the URL beginning from `/subscriptions/<id>/...` and put it after `resources.azure.com`. This will navigate you to the resource you had open on the browser.
+
+**Resource Manager**: Just a centralized API which handles all requests. When you send a request through any of the Azure APIs, tools, GUI, or SDKs, Resource Manager receives the request. It authenticates and authorizes the request before forwarding it to the appropriate Azure service. Because all requests are handled through the same API, you see consistent results and capabilities in all the different tools.
+
+![](./_images/azure-resource-manager.jpg)
+
+## 9. Compute Services - VMs, VM Scale Set, App Service, Functions, ACI, AKS
+
+## ... 

@@ -1,6 +1,5 @@
 # Docker
 
-
 ## Entrypoint vs CMD
 The `ENTRYPOINT` specifies a command that will always be executed when the container starts.
 The `CMD` specifies arguments that will be fed to the ENTRYPOINT.
@@ -63,3 +62,6 @@ Running Podman on MacOs M1:
  * After the installation, you need to run `podman machine init` which downloads a VM.
  * Running `podman machine start` crashes the system on MacOs 12.1 and 12.3
  * Upgrading the system to MacOs 12.4+ solves the problem but now it (currently, September 2022) prints `Error: cannot start VM podman-machine-default: VM already running or starting`
+
+## TODO
+ * Copy a docker image between locations. Images can be zipped.

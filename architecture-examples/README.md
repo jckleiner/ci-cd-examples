@@ -113,7 +113,52 @@ There are a number of different strategies you can use for application deploymen
  3. **Blue-green deployment**: Deploy 5 new copies of the app, wait for all of them to come up and pass health checks, shift all live traffic to the new copies, and then undeploy the old copies. Blue-green deployment works only if you have flexible capacity (e.g., your apps run in the cloud, where you can spin up new virtual servers any time you want) and if your application can tolerate more than 5 copies of it running at the same time. The advantage is that only one version of your app is visible to users at any given time, and that you never have less than 5 copies of the app running, so you’re not running at a reduced capacity during deployment.
  4. **Canary deployment**: Deploy 1 new copy of the app, wait for it to come up and pass health checks, start sending live traffic to it, and then pause the deployment. During the pause, compare the new copy of the app, called the “canary,” to one of the old copies, called the “control.” You can compare the canary and control across a variety of dimensions: CPU usage, memory usage, latency, throughput, error rates in the logs, HTTP response codes, and so on. Ideally, there’s no way to tell the two servers apart, which should give you confidence that the new code works just fine. In that case, you unpause the deployment, and use one of the rolling deployment strategies to complete it. On the other hand, if you spot any differences, then that may be a sign of problems in the new code, and you can cancel the deployment and undeploy the canary before the problem gets worse.
 
+## Types of servers from a DevOps perspective
+ * Snowflake Server
+ * Phoenix Server
+ * Immutable Server
+
+**Snowflake Server**:
+A Snowflake Server is a server which is managed manually and is very much an anti-pattern representing the case when a server evolves in an uncontrolled manner to the point when it cannot be easily reproduced.
+ - it's difficult to reproduce. If you need to run a cluster, you get difficulties keeping all of the instances of the cluster in sync. You can't easily mirror your production environment for testing.
+ - over time the changes makes the server unmanagable. The server will become hard to understand and modify. Upgrades of one bit software cause unpredictable knock-on effects. You're not sure what parts of the configuration are important, or just the way it came out of the box many years ago
+
+**Phoenix Server**: a server which is configured by a configuration management tool like Ansible (or a base image with some configuration already applied). All the configurations are listed and stored in version control. This reduces configuration drift: ad hoc changes to a systems configuration that go unrecorded. But it does not get rid of them fully. You might still get configuration drift on the parts which is not managed by your configuration management tool.
+ * You could either spin up a naked server and configure it fully with for example Ansible
+ * or another variation is using a baked in base image to spin up the server where you have all the necessacry and rarely changing things already installed and configured. After that Ansible could be used to manage the more frequently changing parts.
+ * You can frequently destroy and re-configure new servers to make sure each server has the same configuration
+
+**Immutable Server**: A server which is not configured once its live. With every change, a new image is "baked", the running server is destroyed and a new server with that new image is created.
+
+When implementing phoenix or immutable servers you should consider what data needs to be persisted as servers are destroyed and created, and what data must be replicated in order to scale by adding additional servers. 
+
+# TODO how to split up terraform modules so you can deploy new versions of your app without downtime? - https://livebook.manning.com/book/terraform-in-action/chapter-9/30
+## Deployment Strategies with Terraform
+ 1. Use ansible as a provisioner to setup each instance with the app included
+    - Is probably slow since for each deployment of your application, the server needs to be provisioned from the ground up
+    - Semi-Immutable infrastructure, meaning there is a chance that not every EC2 instance will be the exact same. 
+ 2. Use ansible separate from Terraform to provision the server once and then deploy the applicaion multiple times.
+    - Mutable infrastructure
+ 3. Use packer to create AMI's with the application included and then use those to spin up new EC2 instances
+    - Immutable infrastructure, every EC2 instance using that AMI will be the exact same
+ 4. Use packer to create AMI's just to provision the server and then use Ansible to deploy the application
+ 5. Use 2 Packer AMI's: one is the server being provisioned without the application, lets say AMI-A, 
+    this image will be the base image for when you want to build an image including the newer versions of your application (AMI-B).
+    If anything should change on the server you rebuild AMI-A
+    If only the application changes then you just take AMI-A as the base image and build AMI-B
+ 5. Docker Image with the application built in, deploy to AWS Elastic Container Service (ECS)
+    - Docker Layers are cached, so if only our application changes, docker build won't take too long
+    - https://www.youtube.com/watch?v=zs3tyVgiBQQ
+
+
+
 <br><hr><br>
+
+
+
+
+
+
 
 ## ...
 

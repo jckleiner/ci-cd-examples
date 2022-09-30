@@ -3,6 +3,7 @@ name: build-deploy-dockerhub
 on:
   # runs only when a PR is opened with 'master' being the target
   pull_request:
+    branches: [ master ]
   # when a new commit is pushed to master
   push:
     branches: [ master ]

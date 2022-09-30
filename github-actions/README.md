@@ -63,8 +63,9 @@ jobs:
 ### Storing Secrets
 If your workflows use sensitive data, such as passwords or certificates, you can save these in GitHub as secrets and then use them in your workflows as environment variables.
 If your secrets are printed to stdout, the console won't show the values. Instead you will see `***`.
-There are 2 types of secrets in GitHub:
- 1. **Repository secrets** (Settings > Secrets > Actions > new repository secret): these are globally available in your workflows, accessed like this `${{secret.REPO_SECRET}}`
+There are 3 types of secrets in GitHub:
+ 1. **Organization Secrets**: Secrets created on an organizations page. These are globally available in your workflows, accessed like this `${{secret.REPO_SECRET}}`. Not available with the free plan. Effectively becomes repository secrets.
+ 2. **Repository secrets** (Settings > Secrets > Actions > new repository secret): these are globally available in your workflows, accessed like this `${{secret.REPO_SECRET}}`
     ```YAML
     jobs:
     example-job:
@@ -86,7 +87,7 @@ There are 2 types of secrets in GitHub:
             environment: |
             ENV_VAR_1=${{ secrets.REPO_SECRET }}
     ```
- 2. **Environment secrets** (Settings > Environments > New Environment > ... > add secret): Only available when you use that particular environment in a job.
+ 3. **Environment secrets** (Settings > Environments > New Environment > ... > add secret): Only available when you use that particular environment in a job.
     In this example `TEST_ENV_SECRET` is only accessible if the job uses `environment: test-env`
     ```YAML
     jobs:
@@ -98,6 +99,10 @@ There are 2 types of secrets in GitHub:
             run: echo "My secret: ${{ secrets.TEST_ENV_SECRET }}"
     ```
 
+Order of precedence for secrets:
+  1. Environment secrets
+  2. Repository secrets
+  3. Organization secrets
 
 ### Creating dependent jobs
 By default, the jobs in your workflow **all run in parallel**. 
@@ -212,7 +217,9 @@ In this codecentric [blog article](https://blog.codecentric.de/github-actions-ne
 
 # TODOs
  * How does versions work? my-action@v3 -> does this use the latest 3.x.x?
- * Create your own action repository to test stuff
+ * Create Your Own GitHub Actions: https://www.youtube.com/watch?v=jwdG6D-AB1k
  * Nested folders in workflows folder?
- * Setup your own runner?
- * more about caching
+ * Setup your own runner with Docker?
+   * GitHub Actions Self Hosted Runner (Autoscaling with Kubernetes): https://www.youtube.com/watch?v=lD0t-UgKfEo&t=295s
+ * learn more about caching
+ * Learn more (and maybe document) about signing containers: https://www.youtube.com/watch?v=OqZlKbTRWOY

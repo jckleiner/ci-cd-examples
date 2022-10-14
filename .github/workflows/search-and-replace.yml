@@ -18,12 +18,6 @@ jobs:
 
     - run: cat ./test/.github/scripts/myfile.txt
     
-    - name: Find and Replace
-      uses: jacobtomlinson/gha-find-replace@v2
-      with:
-        include: "./test/.github/scripts/myfile.txt"
-        find: "text."
-        replace: "--text...--"
-        regex: false
+    - run: sed 's/text./--text...-/g' ./test/.github/scripts/myfile.txt
 
     - run: cat ./test/.github/scripts/myfile.txt

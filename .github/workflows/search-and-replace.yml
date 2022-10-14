@@ -1,0 +1,19 @@
+name: Testing stuff
+
+on:
+  # adds a "run workflow" button to the page
+  workflow_dispatch:
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    
+    - uses: actions/checkout@v3
+      with:
+        path: test
+    
+

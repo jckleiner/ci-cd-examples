@@ -18,6 +18,6 @@ jobs:
 
     - run: cat ./test/.github/scripts/myfile.txt
     
-    - run: sed 's/text./--text...-/g' ./test/.github/scripts/myfile.txt
+    - run: sed -ie 's/text./--text...-/g' ./test/.github/scripts/myfile.txt
 
     - run: cat ./test/.github/scripts/myfile.txt

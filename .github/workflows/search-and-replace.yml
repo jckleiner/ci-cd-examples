@@ -1,5 +1,9 @@
 name: Testing stuff
 
+# Note: The workflow will also receive the inputs in the `github.event.inputs context`. 
+# The information in the `inputs` context and `github.event.inputs` context is identical except that 
+# the `inputs` context preserves `Boolean` values as Booleans instead of converting them to strings.
+
 on:
   workflow_dispatch:
     inputs:
@@ -8,6 +12,14 @@ on:
           input1:
           a test input field
         required: true
+      env:
+        description: Choose the environment
+        default: 'dev' 
+        type: choice
+        options:
+        - dev
+        - test
+        - prod 
 
 jobs:
 
@@ -20,6 +32,8 @@ jobs:
     - uses: actions/checkout@v3
       with:
         path: test
+
+    - run: echo "environment selected: ${{ github.event.inputs.env }}"
 
     - run: cat ./test/.github/scripts/myfile.txt
     

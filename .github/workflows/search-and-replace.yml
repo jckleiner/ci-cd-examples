@@ -27,9 +27,8 @@ jobs:
 
     - run: cat ./test/.github/scripts/myfile.txt
     
-    - name: replace
-      if: github.event_name == 'workflow_dispatch' && github.event.inputs.input1 != ''
-      run: echo "EMPTY 1"
+    - if: github.event_name == 'workflow_dispatch' && github.event.inputs.input1 == ''
+      run: echo "input1 is empty"
 
     - name: test 
-      run: echo "${{ github.event_name == 'workflow_dispatch' && github.event.inputs.input1 == '' && 'EMPTY 2' || format('Not empty:\ {0}', github.event.inputs.input1) }}"
+      run: echo "${{ github.event_name == 'workflow_dispatch' && github.event.inputs.input1 == '' && 'EMPTY 2' || format('input1 is NOT empty:\ {0}', github.event.inputs.input1) }}"

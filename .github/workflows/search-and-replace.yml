@@ -29,7 +29,7 @@ jobs:
       with:
         path: test
 
-    - run: echo "environment selected:${{ github.event.inputs.env }}"
+    - run: echo "environment selected:\ ${{ github.event.inputs.env }}"
 
     - run: cat ./test/.github/scripts/myfile.txt
     

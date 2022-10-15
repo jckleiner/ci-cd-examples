@@ -37,13 +37,13 @@ jobs:
     - run: echo "env variable -> ${{ env.ENV_VAR }}"
     
     - run: |
-        if [ '${{ github.event.inputs.includeConsole }}' == 'true' ]; then
+        if [ '${{ github.event.inputs.enableDeployment }}' == 'true' ]; then
           echo "includeConsole: TRUE"
         fi
-        if [ '${{ github.event.inputs.includeConsole }}' == 'false' ]; then
+        if [ '${{ github.event.inputs.enableDeployment }}' == 'false' ]; then
           echo "includeConsole: FALSE"
         fi
-        if [ '${{ github.event.inputs.includeConsole }}' == '' ]; then
+        if [ '${{ github.event.inputs.enableDeployment }}' == '' ]; then
           echo "includeConsole: EMPTY"
         fi
     

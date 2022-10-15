@@ -1,8 +1,13 @@
 name: Testing stuff
 
 on:
-  # adds a "run workflow" button to the page
   workflow_dispatch:
+    inputs:
+      input1:
+        description: >-
+          input1:
+          a test input field
+        required: true
 
 jobs:
 
@@ -18,6 +23,13 @@ jobs:
 
     - run: cat ./test/.github/scripts/myfile.txt
     
-    - run: sed -ie 's/text./--text...-/g' ./test/.github/scripts/myfile.txt
+    - run: sed -ie 's/text./--text-${{ github.event.inputs.input1 }}-...-/g' ./test/.github/scripts/myfile.txt
 
     - run: cat ./test/.github/scripts/myfile.txt
+    
+    - name: replace
+      if: github.event_name == 'workflow_dispatch' && github.event.inputs.input1 != ''
+      run: echo "EMPTY 1"
+
+    - name: test 
+      run: echo "${{ github.event_name == 'workflow_dispatch' && github.event.inputs.input1 == '' && "EMPTY 2" || format('Not empty:\ {0}', github.event.inputs.input1) }}"

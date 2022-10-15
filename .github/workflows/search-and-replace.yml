@@ -8,9 +8,11 @@ on:
           input1:
           a test input field
         required: true
+      enableDeployment:
+        type: boolean
       env:
         description: Choose the environment
-        default: 'dev' 
+        default: dev 
         type: choice
         options:
         - dev
@@ -29,7 +31,7 @@ jobs:
       with:
         path: test
 
-    - run: echo "environment selected:\ ${{ github.event.inputs.env }}"
+    - run: echo "environment selected -> ${{ github.event.inputs.env }}"
 
     - run: cat ./test/.github/scripts/myfile.txt
     

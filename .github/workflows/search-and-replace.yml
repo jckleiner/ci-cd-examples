@@ -12,7 +12,7 @@ on:
         type: boolean
       env:
         description: Choose the environment
-        default: dev 
+        default: test 
         type: choice
         options:
         - dev
@@ -26,6 +26,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    
+    - name: Setting global variables
+      uses: actions/github-script@v6
+      id: var
+      with:
+        script: |
+          core.exportVariable('ENV_VAR', core.getInput('input1', { trimWhitespace: false }));
+    
+    - run: echo "env variable -> ${{ env.ENV_VAR }}"
     
     - uses: actions/checkout@v3
       with:

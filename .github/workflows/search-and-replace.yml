@@ -32,4 +32,4 @@ jobs:
       run: echo "EMPTY 1"
 
     - name: test 
-      run: echo "${{ github.event_name == 'workflow_dispatch' && github.event.inputs.input1 == '' && "EMPTY 2" || format('Not empty:\ {0}', github.event.inputs.input1) }}"
+      run: echo "${{ github.event_name == 'workflow_dispatch' && github.event.inputs.input1 == '' && 'EMPTY 2' || format('Not empty:\ {0}', github.event.inputs.input1) }}"

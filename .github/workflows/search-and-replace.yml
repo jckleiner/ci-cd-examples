@@ -10,6 +10,7 @@ on:
         required: true
       enableDeployment:
         type: boolean
+        required: true
       env:
         description: Choose the environment
         default: test 

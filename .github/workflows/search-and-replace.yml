@@ -11,7 +11,7 @@ on:
       enableDeployment:
         type: boolean
       env:
-        description: Choose the environment
+        description: Choose `the` environment
         default: test 
         type: choice
         options:

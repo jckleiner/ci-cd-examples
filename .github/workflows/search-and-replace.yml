@@ -27,6 +27,10 @@ jobs:
 
     steps:
     
+    - name: Print current branch
+      run: | 
+        echo "branch: ${{ github.head_ref }}"
+    
     - name: Setting global variables
       uses: actions/github-script@v6
       id: var

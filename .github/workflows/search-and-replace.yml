@@ -29,7 +29,7 @@ jobs:
     
     - name: Print current branch
       run: | 
-        echo "branch: ${{ github.head_ref || github.ref_name }} "
+        echo "branch: ${{ github.head_ref || github.ref_name }}"
     
     - name: Setting global variables
       uses: actions/github-script@v6

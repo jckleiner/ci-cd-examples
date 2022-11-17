@@ -1,0 +1,20 @@
+name: Reusable
+on:
+  workflow_call:
+    inputs:
+      arg1:
+        required: true
+        type: string
+
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    
+    - name: Print
+      run: | 
+        echo "arg1: ${{ inputs.arg1 }} "

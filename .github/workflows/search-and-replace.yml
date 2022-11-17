@@ -21,6 +21,27 @@ on:
 
 jobs:
 
+  one:
+    runs-on: ubuntu-latest
+    steps:
+      - name: One
+        run: | 
+          echo "ONE"
+
+  two:
+    needs: one
+    uses: jckleiner/ci-cd-examples/.github/workflows/reusable.yaml@master
+    with:
+      arg1: "WORKS..."
+          
+  three:
+    runs-on: ubuntu-latest
+    needs: two
+    steps:
+      - name: Three
+        run: | 
+          echo "THREE"
+
   build:
 
     runs-on: ubuntu-latest

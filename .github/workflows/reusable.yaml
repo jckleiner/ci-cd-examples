@@ -18,3 +18,4 @@ jobs:
     - name: Print
       run: | 
         echo "arg1: ${{ inputs.arg1 }} "
+        sleep 5

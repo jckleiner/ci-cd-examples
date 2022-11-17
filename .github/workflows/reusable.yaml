@@ -5,7 +5,13 @@ on:
       arg1:
         required: true
         type: string
-
+  workflow_dispatch:
+    inputs:
+      input1:
+        description: >-
+          input1:
+          a test input field
+        required: true
 
 jobs:
 
@@ -19,4 +25,8 @@ jobs:
       run: | 
         echo "arg1: ${{ inputs.arg1 }} "
         sleep 5
-        exit 1
+        
+    - name: Print 2
+      run: | 
+        echo "arg1: ${{ github.event.inputs.input1 }} "
+        sleep 5

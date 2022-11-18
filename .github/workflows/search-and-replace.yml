@@ -44,4 +44,56 @@ jobs:
           echo "THREE"
           sleep 5
 
-  
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    
+    - name: Print current branch
+      run: | 
+        echo "branch: ${{ github.head_ref || github.ref_name }}"
+    
+    - name: Setting global variables
+      uses: actions/github-script@v6
+      id: var
+      with:
+        script: |
+          core.exportVariable('ENV_VAR', core.getInput('input1', { trimWhitespace: false }));
+    
+    - run: echo "env variable -> ${{ env.ENV_VAR }}"
+    
+    - run: |
+        if [ '${{ github.event.inputs.enableDeployment }}' == 'true' ]; then
+          echo "includeConsole: TRUE"
+        fi
+        if [ '${{ github.event.inputs.enableDeployment }}' == 'false' ]; then
+          echo "includeConsole: FALSE"
+        fi
+        if [ '${{ github.event.inputs.enableDeployment }}' == '' ]; then
+          echo "includeConsole: EMPTY"
+        fi
+        if [ '${{ inputs.enableDeployment }}' == 'true' ]; then
+          echo "includeConsole: TRUE 2"
+        fi
+    
+    - uses: actions/checkout@v3
+      with:
+        path: test
+
+    - run: echo "environment selected -> $env_selected"
+      env:
+        env_selected: ${{ github.event.inputs.env }}
+
+    - run: cat ./test/.github/scripts/myfile.txt
+    
+    - run: sed -ie 's/text./--text-${{ github.event.inputs.input1 }}-...-/g' ./test/.github/scripts/myfile.txt
+
+    - run: cat ./test/.github/scripts/myfile.txt
+    
+    - if: github.event_name == 'workflow_dispatch' && github.event.inputs.input1 == ''
+      run: echo "input1 is empty"
+
+    - name: test 
+      run: echo "${{ github.event_name == 'workflow_dispatch' && github.event.inputs.input1 == '' && 'EMPTY 2' || format('input1 is NOT empty:\ {0}', github.event.inputs.input1) }}"
+

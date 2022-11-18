@@ -23,8 +23,12 @@ jobs:
 
   one:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: [10, 12]
+        os: [ubuntu, windows]
     steps:
-      - name: One
+      - name: One ${{ matrix.version }} - ${{ matrix.os }}
         run: |
           echo "ONE"
           sleep 5

@@ -36,8 +36,11 @@ jobs:
   two:
     needs: one
     uses: jckleiner/ci-cd-examples/.github/workflows/reusable.yaml@master
+    strategy:
+      matrix:
+        arg: ["argument1", "argument2"]
     with:
-      arg1: "WORKS..."
+      arg1: ${{ matrix.arg }}
           
   three:
     runs-on: ubuntu-latest

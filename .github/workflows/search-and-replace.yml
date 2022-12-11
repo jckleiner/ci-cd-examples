@@ -9,7 +9,9 @@ on:
           a test input field
         required: true
       enableDeployment:
+        description: Choose the environment
         type: boolean
+        default: false
       env:
         description: Choose `the` environment
         default: test 
@@ -101,6 +103,7 @@ jobs:
     - if: github.event_name == 'workflow_dispatch' && github.event.inputs.input1 == ''
       run: echo "input1 is empty"
 
+    # ternary operator for github actions
     - name: test 
       run: echo "${{ github.event_name == 'workflow_dispatch' && github.event.inputs.input1 == '' && 'EMPTY 2' || format('input1 is NOT empty:\ {0}', github.event.inputs.input1) }}"
 

@@ -213,7 +213,107 @@ In this codecentric [blog article](https://blog.codecentric.de/github-actions-ne
 
 **Pipeline as Code**: Pipeline as code is a practice of defining deployment pipelines through source code, such as Git. Pipeline as code is part of a larger “as code” movement that includes infrastructure as code. Teams can configure builds, tests, and deployment in code that is trackable and stored in a centralized source repository. Teams can use a declarative YAML approach or a vendor-specific programming language, such as Jenkins and Groovy, but the premise remains the same.
 
+## Tricky Stuff
+This will break your workflow file: `bad indentation of a sequence entry`.
+The `:` has a special meaning in strings and it can't come before a `$` with spaces for some reason.
 
+```bash
+# Breaks
+- run: echo "environment selected: ${{ github.event.inputs.env }}"
+- run: echo "environment selected : ${{ github.event.inputs.env }}"
+
+# Works
+- run: echo "environment selected:${{ github.event.inputs.env }}"   # environment selected:dev
+- run: echo "environment selected:\ ${{ github.event.inputs.env }}" # environment selected:\ dev
+- run: echo "environment selected:+ ${{ github.event.inputs.env }}" # environment selected:+ dev
+```
+
+## inputs vs github.event.inputs
+TODO - https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onworkflow_dispatchinputs
+
+## Ternary
+```yaml
+  # ternary operator for github actions
+  run: echo "${{ github.event_name == 'workflow_dispatch' && github.event.inputs.input1 == '' && 'EMPTY 2' || format('input1 is NOT empty:\ {0}', github.event.inputs.input1) }}"
+```
+
+A note about the ternary workaround `${{ x && <yes> || <false> }}:`
+
+This only works if `<yes>` isn't the empty string. If `<yes> == ''` then `''` is considered as false, which then evaluates the right hand side of the `||`.
+
+## Trigger Workflow and Wait
+Surprisingly GHA does not support triggering another workflow and waiting for a result, if any of the chils fail, the calling fails. This mechanism is not well supported. There are `Reusable Workflows` and `Composite Actions` from GH.
+These 3rd party actions are commonly used:
+
+ * `convictional/trigger-workflow-and-wait` - also has a bug where the links to the "child" workflows are not always correct. This happens when a workflow A has a matrix and in A you are calling workflow B. Probably the GitHub API returns sometimes the wrong order or links I assume. The same problem happens also in the `actions/workflow-dispatch-and-wait` action.
+ * `actions/workflow-dispatch` - just a dispatch, does not wait
+ * `actions/workflow-dispatch-and-wait` - a not well maintained fork of `workflow-dispatch`, waits but has bugs like the parent job will be green, even though some childs failed or the link to the child workflows are sometimes wrong.
+
+## Reusable Workflows
+ * Define with the `uses` keyword
+ * Called from within the job, cannot be called as a step
+ * Essentially the reusable workflow is the job
+
+ 1. The calling workflow and the reusable workflow is in the **same repository**
+    - `uses: ./.github/workflows/reusable-workflow-1.yml`
+    - this uses the same commit by default
+ 2. The calling workflow and the reusable workflow is in the **different repositories**
+    - `uses: {owner}/{repository}/.github/workflows/{filename}@{ref}`
+    - `uses: jckleiner/ci-cd-examples/.github/workflows/reusable-workflow-1.yml@v1`
+    - ref: Commit SHA, branch name or release tag
+
+If you want to call a workflow in a different repository, you need to make sure that you enabled the correct access settings.
+`Settings > Actions > General`, here you will see the different options like enabling it for repositories of the same organization etc.
+
+### Reusable Workflows - Limitations
+ * You can connect **up to four levels of workflows**. For more information, see "Nesting reusable workflows."
+    - For example: `caller-workflow.yml → called-workflow-1.yml → called-workflow-2.yml → called-workflow-3.yml`. Loops in the workflow tree are not permitted. 
+    - **From within a reusable workflow you can call another reusable workflow**.
+ * Reusable workflows stored within a private repository can only be used by workflows within the same repository.
+ * Any environment variables set in an `env` context defined at the workflow level in the caller workflow are not propagated to the called workflow. For more information about the `env` context, see "Context and expression syntax for GitHub Actions."
+
+### Passing inputs and secrets to a reusable workflow
+To pass named inputs to a called workflow, use the `with` keyword in a job. Use the `secrets` keyword to pass named secrets. For inputs, the data type of the input value must match the type specified in the called workflow (either boolean, number, or string).
+```yaml
+jobs:
+  call-workflow-passing-data:
+    uses: octo-org/example-repo/.github/workflows/reusable-workflow.yml@main
+    with:
+      config-path: .github/labeler.yml
+    secrets:
+      envPAT: ${{ secrets.envPAT }}
+```
+Workflows that call reusable workflows in the same organization or enterprise can use the `inherit` keyword to implicitly pass the secrets.
+
+```yaml
+jobs:
+  call-workflow-passing-data:
+    uses: octo-org/example-repo/.github/workflows/reusable-workflow.yml@main
+    with:
+      config-path: .github/labeler.yml
+    secrets: inherit
+```
+
+
+
+## Reusable Workflows vs Composite Actions
+TODO - https://www.youtube.com/watch?v=xa9gYSCf8q0
+
+## Get current branch in action
+https://stackoverflow.com/questions/58033366/how-to-get-the-current-branch-within-github-actions
+This works for every trigger that you can specify under on (e.g push or pull_request):
+
+    env:
+      BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
+
+The trick is that github.head_ref is only set when the workflow was triggered by a pull_request and it contains the value of the source branch of the PR. github.ref_name will than only be used if the workflow was not triggered by a pull_request and it also just contains the branch name.
+
+## Mask a value from being logged
+https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#masking-a-value-in-log
+When you just run a command command like `az login --username 'myUser' --password 'myPassword'`, this command will be logged out to the logs in GHA in plain text.
+To prevent this we need to mask the values which are secret for us. In this case, lets say `myUser` and `myPassword` should not be printed out.
+ * `::add-mask::${{ mySecret }}`: This **DOES NOT WORK** because it still echoes the secret value to the log (https://github.com/actions/runner/issues/475). No solution given here worked. My example was: I have a secret which contains a JSON object. I want to pass properties of that object to GHA commands (`${{ fromJson(secrets.MY_SECRET_JSON_STRING).password }}`) but could not find a way to hide the values being printed as plain text.
+ * **The only possible solution here** is to define each value as a separate GHA secret, then they won't be printed at all by default.
 
 # TODOs
  * How does versions work? my-action@v3 -> does this use the latest 3.x.x?

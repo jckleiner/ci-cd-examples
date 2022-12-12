@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController public class Controller {
@@ -39,6 +40,21 @@ import org.springframework.web.bind.annotation.RestController;
 
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set("Cache-Control", "max-age=40");
+
+        return ResponseEntity.ok()
+                .headers(responseHeaders)
+                .body(String.format("GET - Node %s - %s", NODE_NUM, now));
+    }
+
+    @GetMapping("/expires")
+    public ResponseEntity<String> getExpires() {
+        LocalDateTime now = LocalDateTime.now();
+
+        System.out.println(" --> GET /expires  " + now);
+
+        // Docs: Note: If there is a Cache-Control header with the max-age or s-maxage directive in the response, the Expires header is ignored.
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.set("Expires", "Wed, 21 Oct 2015 07:28:00 GMT");
 
         return ResponseEntity.ok()
                 .headers(responseHeaders)

@@ -5,6 +5,7 @@ on:
       arg1:
         required: true
         type: string
+
   workflow_dispatch:
     inputs:
       input1:
@@ -12,7 +13,10 @@ on:
           input1:
           a test input field
         required: true
-
+      argDefault:
+        required: false
+        type: string
+        default: "DEFAULT_WORKS"
 jobs:
 
   build:
@@ -23,7 +27,8 @@ jobs:
     
     - name: Print
       run: | 
-        echo "arg1: ${{ inputs.arg1 }} "
+        echo "arg1: ${{ inputs.arg1 }}"
+        echo "argDefault: ${{ inputs.argDefault }}"
         sleep 5
         
     - name: Print 2

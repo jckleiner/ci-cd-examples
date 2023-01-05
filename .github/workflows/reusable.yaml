@@ -5,6 +5,10 @@ on:
       arg1:
         required: true
         type: string
+      arg2:
+        required: false
+        type: string
+        default: "ARG_2_DEFAULT"
 
   workflow_dispatch:
     inputs:
@@ -29,6 +33,7 @@ jobs:
       run: | 
         echo "arg1: ${{ inputs.arg1 }}"
         echo "argDefault: ${{ inputs.argDefault }}"
+        echo "arg2: ${{ inputs.arg2 }}"
         sleep 5
         
     - name: Print 2

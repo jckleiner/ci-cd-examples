@@ -1,0 +1,29 @@
+name: Multi Job with env
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  one:
+    runs-on: ubuntu-latest
+    steps:
+      - name: step
+        run: | 
+          echo "1"
+          
+  two:
+    runs-on: ubuntu-latest
+    needs: one
+    steps:
+      - name: step
+        run: | 
+          echo "2"
+          
+  three:
+    runs-on: ubuntu-latest
+    needs: two
+    steps:
+      - name: step
+        run: | 
+          echo "3"

@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: step
         run: | 
-          echo "1" && sleep 2 && exit 1
+          echo "1" && sleep 2
           
   two:
     runs-on: ubuntu-latest

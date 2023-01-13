@@ -30,7 +30,7 @@ jobs:
           
   four:
     runs-on: ubuntu-latest
-    needs: two
+    needs: three
     steps:
       - name: step
         run: | 

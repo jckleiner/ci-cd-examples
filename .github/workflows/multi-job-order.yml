@@ -35,8 +35,7 @@ jobs:
           
   run-load-test:
     runs-on: ubuntu-latest
-    needs: run-monitor-job
-#    if: ${{ jobs.run-monitor-job.result == 'skipped' }}
+    needs: two
     if: ${{ always() && needs.run-monitor-job.result == 'skipped' }}
     steps:
       - name: step

@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: step
         run: | 
-          echo "1" && sleep 2 && exit 1
+          echo "1" && sleep 2
           
   two:
     runs-on: ubuntu-latest
@@ -26,7 +26,7 @@ jobs:
     steps:
       - name: step
         run: | 
-          echo "3" && sleep 2
+          echo "3" && sleep 2 && exit 1
           
   run-load-test:
     runs-on: ubuntu-latest

@@ -1,4 +1,4 @@
-name: Testing stuff
+name: Call Reusable Workflow
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ jobs:
   echo:
     runs-on: ["ubuntu-latest"]
     steps:
-      - name: echo
+      - name: Print workflow URL
         run: |
           echo "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 

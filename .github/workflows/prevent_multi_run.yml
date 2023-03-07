@@ -1,0 +1,18 @@
+name: Allow only one workflow to run at one time
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+    steps:
+    
+    - name: Sleeping
+      run: |
+        sleep 20
+
+    
+

@@ -3,6 +3,8 @@ name: Allow only one workflow to run at one time
 on:
   workflow_dispatch:
 
+concurrency: somestring
+
 jobs:
 
   build:

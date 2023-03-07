@@ -23,6 +23,13 @@ on:
         default: "DEFAULT_WORKS"
 jobs:
 
+  echo:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Print workflow URL
+        run: |
+          echo "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
   build:
 
     runs-on: ubuntu-latest

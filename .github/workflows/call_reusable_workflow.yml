@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Print workflow URL
         run: |
-          echo "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs/${{ github.job }}"
 
   call:
     uses: ./.github/workflows/reusable.yaml

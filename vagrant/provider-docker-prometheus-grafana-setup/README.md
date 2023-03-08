@@ -65,5 +65,4 @@ Copy the ID of the dashboard
 In Grafana (http://localhost:3001) hower over 'Dashboard' > Import > enter the ID > load > select datasource 'Prometheus'
 
 ## TODOs
- * Install the python with ansible, wrap it with a systemctl service
- * also import a simple JSON dashboard with ansible so on startup we have a dashboard ready?
+ * also import a simple JSON dashboard with ansible (maybe for our custom_python_exporter) so on startup we have a dashboard ready?

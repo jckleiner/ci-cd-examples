@@ -4,7 +4,7 @@ services:
 
   # https://grafana.com/docs/grafana-cloud/quickstart/docker-compose-linux/
   prometheus:
-    image: "prom/prometheus-linux-arm64"
+    image: "prom/prometheus-linux-arm64:v2.42.0"
     ports:
       - "9090:9090"
     volumes:
@@ -17,12 +17,13 @@ services:
       - "host.docker.internal:host-gateway"
 
   node_exporter:
-    image: "prom/node-exporter-linux-arm64"
+    image: "prom/node-exporter-linux-arm64:v1.5.0"
     ports:
       - "9100:9100"
 
+  # default credentials admin:admin
   grafana:
-      image: grafana/grafana:7.5.7
+      image: grafana/grafana:9.4.3
       ports:
         - 3000:3000
       depends_on:

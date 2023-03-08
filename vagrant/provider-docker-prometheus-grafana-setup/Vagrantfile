@@ -40,6 +40,10 @@ Vagrant.configure(2) do |config|
       provision.run "nginx", args: "-d -p 80:80"
     end
 
+    vm1.vm.provision "ansible" do |ansible|
+      ansible.playbook = "./ansible/playbook.yml"
+    end
+
     # Sync folder between host and guest
     vm1.vm.synced_folder "./synced_with_vm1", "/home/vagrant/synced_folder"
 
@@ -85,6 +89,10 @@ Vagrant.configure(2) do |config|
     vm2.vm.provision :docker do |provision|
       provision.pull_images "nginx"
       provision.run "nginx", args: "-d -p 80:80"
+    end
+
+    vm2.vm.provision "ansible" do |ansible|
+      ansible.playbook = "./ansible/playbook.yml"
     end
 
     # Sync folder between host and guest

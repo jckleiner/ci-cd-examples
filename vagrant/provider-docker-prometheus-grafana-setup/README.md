@@ -10,7 +10,7 @@ This Vagrant script sets up 2 virtual machines `vm1` and `vm2` (Ubuntu 20.04 - a
 After the setup is done, both machines will have:
  * `docker` and `docker-compose` installed.
  * An `nginx` container running inside them, started as a single docker container
- * A `consul` instance running, started from a docker-compose file
+ * TODO - A `consul` instance running, started from a docker-compose file
 
 ## Requirements
 The docker-compose plugin needs to be installed on the host machine: `vagrant plugin install vagrant-docker-compose`.
@@ -19,8 +19,8 @@ The docker-compose plugin needs to be installed on the host machine: `vagrant pl
 Run `vagrant up` to start all VMs.
 Run `vagrant reload` to reload the changed config in `Vagrantfile`.
 Run `vagrant global-status` to see which VMs are running.
+Run `vagrant provision` to run any configured provisioners against the running Vagrant managed machine.
 Run `vagrant destroy -f` to stop and delete both containers.
-
 
 After the setup is finished, validate that the Docker containers started:
  * Run `docker ps`
@@ -61,5 +61,11 @@ So, to connect to vms using the explicit method:
 This vagrant script will setup a private network and will assign static IP addresses to the virtual machines.
 Virtual machine 1 will have the IP `10.10.10.11` and virtual machine 2 `10.10.10.12`. Since it's a private network, the IP's are only usable/resolvable inside the virtual machines (or docker containers in our case). Which means you can't access the containers with their IP address from your host machine. You can however access them via the exposed container ports.
 
+## Importing a Grafana Dashboard
+Go to `https://grafana.com/grafana/dashboards/1860-node-exporter-full/` for example
+Copy the ID of the dashboard
+In Grafana (http://localhost:3001) hower over 'Dashboard' > Import > enter the ID > load > select datasource 'Prometheus'
+
 ## TODOs
- * Will installing docker and docker-compose directly inside the Dockerfile work?
+ * Install the python with ansible, wrap it with a systemctl service
+ * also import a simple JSON dashboard with ansible so on startup we have a dashboard ready?

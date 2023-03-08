@@ -34,7 +34,7 @@ while True:
 """
 pip3 install -r requirements.txt
 
-Generates the following data:
+Generates the following sample data under 'localhost:8000':
 
 # HELP myapp_requests_total Total number of requests
 # TYPE myapp_requests_total gauge

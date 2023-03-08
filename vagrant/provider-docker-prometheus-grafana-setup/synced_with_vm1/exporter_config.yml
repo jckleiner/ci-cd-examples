@@ -3,8 +3,11 @@ global:
 
 scrape_configs:
   - job_name: node exporter
-    # metrics_path: /metrics # this is the default
+    # this is the default
+    # metrics_path: /metrics
     static_configs:
+      # one node_exporter is running on a different container on the same host as the prometheus: node_exporter:9100
+      # the other exporter runs on vm2: 10.10.10.12:9100
       - targets: ["node_exporter:9100", "10.10.10.12:9100"]
 
   # running a python script which serves the metrics under localhost:8000 on the host machine

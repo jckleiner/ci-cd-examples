@@ -1,0 +1,30 @@
+---
+
+- name: copy python file
+  copy:
+    src: example_custom_exporter.py
+    dest: "/home/vagrant/"
+
+- name: copy requirements file
+  copy:
+    src: files/requirements.txt
+    dest: "/home/vagrant/"
+
+- name: install python requirements
+  become: true
+  command: "pip3 install -r /home/vagrant/requirements.txt"
+
+- name: create systemd service unit
+  template:
+    src: etc/systemd/system/custom_python_exporter.service.j2
+    dest: /etc/systemd/system/custom_python_exporter.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: enable custom_python_exporter service
+  become: true
+  service:
+    name: custom_python_exporter
+    state: started
+    enabled: yes

@@ -15,6 +15,10 @@ services:
       - './exporter_config.yml:/etc/prometheus/prometheus.yml'
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
+    # to enable this container to access the host
+    # 'host.docker.internal' can be named anything
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   node_exporter:
     image: "prom/node-exporter-linux-arm64"

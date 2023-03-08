@@ -29,6 +29,7 @@ RUN apt-get update -y \
                     jq \
                     rsync \
                     wget \
+                    python3-pip\
     && apt-get clean
 
 # Needed to run systemd

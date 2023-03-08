@@ -22,11 +22,9 @@ Run `vagrant global-status` to see which VMs are running.
 Run `vagrant provision` to run any configured provisioners against the running Vagrant managed machine.
 Run `vagrant destroy -f` to stop and delete both containers.
 
-After the setup is finished, validate that the Docker containers started:
- * Run `docker ps`
- * The following 2 containers should be running: 
-   * `vm1` with the following ports exposed: `2001->22` and `8061->80`
-   * `vm2` with the following ports exposed: `2002->22` and `8062->80`
+Test if everything works fine:
+ * Go to `http://localhost:9091/targets` -> you should see 3 `UP` states
+ * Go to `http://localhost:3001` -> credentials `admin:admin` -> TODO
 
 Test the connection `host -> vm1`: 
  * Send a request to virtual machine 1: `curl -I http://localhost:8061`

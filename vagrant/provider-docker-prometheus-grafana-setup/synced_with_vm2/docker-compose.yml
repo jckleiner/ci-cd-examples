@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  consul:
+    image: "consul:1.9"
+    ports:
+      - "8500:8500"
+
+  node_exporter:
+    image: "prom/node-exporter-linux-arm64"
+    ports:
+      - "9100:9100"

@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+
+  # https://grafana.com/docs/grafana-cloud/quickstart/docker-compose-linux/
+  prometheus:
+    image: prom/prometheus-linux-arm64:v2.42.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - './exporter_config.yml:/etc/prometheus/prometheus.yml'
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    # to enable this container to access the host
+    # the first part 'custom_varnish_exporter' can be named anything
+    extra_hosts:
+      - "custom_varnish_exporter:host-gateway"
+
+  node_exporter:
+    image: prom/node-exporter-linux-arm64:v1.5.0
+    ports:
+      - "9100:9100"
+
+  # default credentials admin:admin
+  grafana:
+      image: grafana/grafana:9.4.3
+      ports:
+        - 3000:3000
+      depends_on:
+        - prometheus
+      restart: always
+      volumes:
+        - ./prometheus_datasource.yml:/etc/grafana/provisioning/datasources/prometheus_datasource.yml
+        

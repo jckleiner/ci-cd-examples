@@ -1,4 +1,4 @@
-# Vagrant Multi-Machine Setup For MacOs M1 using Docker as the Provider
+# TODO - update doc
 
 > The base Dockerfile and Vagrantfile is taken from https://dev.to/taybenlor/running-vagrant-on-an-m1-apple-silicon-using-docker-3fh4. 
 > Check out that article to learn more about running Vagrant with Docker as provider on MacOs M1.

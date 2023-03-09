@@ -15,8 +15,7 @@ Test if everything works fine:
  * Go to `http://localhost:9091/targets` -> you should see 3 `UP` states
  * Go to `http://localhost:3001` -> credentials `admin:admin` -> TODO
  * Go to `http://localhost:8001/` -> you should see some varnish metrics with prefix `TODO`
- * `varnishd -V` make sure you have varnish 6 installed
-
+ * Connect to virtual machine 1: `vagrant ssh vm1` and make sure you have varnish 6.0 installed: `varnishd -V`
 
 ## TODOs
  * also import a simple JSON dashboard with ansible (maybe for our custom_varnish_exporter) so on startup we have a dashboard ready?

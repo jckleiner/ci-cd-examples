@@ -6,6 +6,8 @@ After=network-online.target nss-lookup.target
 Type=forking
 KillMode=process
 
+PIDFile=/var/run/varnish.pid
+
 # Maximum number of open files (for ulimit -n)
 LimitNOFILE=131072
 
@@ -21,13 +23,19 @@ TasksMax=infinity
 # Maximum size of the corefile.
 LimitCORE=infinity
 
+# TODO - needed?
+# EnvironmentFile=/etc/varnish/varnish.params
+
 ExecStart=/usr/sbin/varnishd \
-	  -a :6081 \
-	  -a localhost:8443,PROXY \
-	  -p feature=+http2 \
+	  -a :80 \
 	  -f /etc/varnish/default.vcl \
+	  -P /var/run/varnish.pid \
 	  -s malloc,256m
 ExecReload=/usr/sbin/varnishreload
+
+# TODO - what for exactly?
+Restart=on-failure
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target

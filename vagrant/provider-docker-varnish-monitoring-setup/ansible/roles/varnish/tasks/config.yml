@@ -1,0 +1,49 @@
+---
+
+# - name: "Varnish - Copy varnish secret"
+#   ansible.builtin.copy:
+#     content: "{{ motown2_varnish_secret }}"
+#     dest: /etc/varnish/secret
+#     owner: root
+#     group: root
+#     mode: 0644
+#   notify:
+#     - reloaded varnish
+
+# - name: "create varnish.params file"
+#   template:
+#     src: etc/varnish/varnish.params.j2
+#     dest: /etc/varnish/varnish.params
+#     owner: root
+#     group: root
+#     mode: 0644
+#   notify:
+#     - reloaded varnish
+
+- name: "Create default.vcl file"
+  template:
+    src: etc/varnish/default.vcl.j2
+    dest: /etc/varnish/default.vcl
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - m2_varnish_update_vcl_files
+  notify:
+    - reloaded varnish
+
+- name: "Create systemd file"
+  template:
+    src: etc/systemd/system/varnish.service.j2
+    dest: /etc/systemd/system/varnish.service
+    owner: root
+    group: root
+    mode: 0644
+  # handlers are executed in the order they are written in the handlers file, not the order they are notified.
+  # If 'reloaded systemd' was written after 'restarted varnish' then this step fails.
+  # Because the new systemd service file for varnish won't be seen by systemctl 
+  # and it uses the 'default' '/lib/systemd/system/varnish.service' which has a different configuration
+  # a 'systemctl daemon-reload' needed in order for systemcyl to use the new service file
+  notify:
+    - reloaded systemd
+    - restarted varnish

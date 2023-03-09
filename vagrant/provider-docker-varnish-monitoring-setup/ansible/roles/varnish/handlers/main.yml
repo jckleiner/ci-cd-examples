@@ -1,0 +1,60 @@
+---
+
+  # handlers are executed in the order they are written in the handlers file, not the order they are notified.
+  # If 'reloaded systemd' was written after 'restarted varnish' (see notify: below) then the step can fail.
+  # Because the new systemd service file for varnish won't be seen by systemctl 
+  # and it uses the 'default' '/lib/systemd/system/varnish.service' which has a different configuration
+  # a 'systemctl daemon-reload' needed in order for systemcyl to use the new service file
+  # notify:
+  #   - reloaded systemd
+  #   - restarted varnish
+
+- name: reloaded systemd
+  systemd:
+    daemon_reload: true
+
+- name: enabled varnish
+  service:
+    name: varnish
+    enabled: true
+
+- name: started varnish
+  service:
+    name: varnish
+    enabled: true
+    state: started
+
+- name: reloaded varnish
+  service:
+    name: varnish
+    enabled: true
+    state: reloaded
+
+- name: restarted varnish
+  service:
+    name: varnish
+    enabled: true
+    state: restarted
+
+- name: enabled varnishncsa
+  service:
+    name: varnishncsa
+    enabled: true
+
+- name: started varnishncsa
+  service:
+    name: varnishncsa
+    enabled: true
+    state: started
+
+- name: reloaded varnishncsa
+  service:
+    name: varnishncsa
+    enabled: true
+    state: reloaded
+
+- name: restarted varnishncsa
+  service:
+    name: varnishncsa
+    enabled: true
+    state: restarted

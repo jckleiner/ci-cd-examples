@@ -25,6 +25,7 @@ Run `vagrant destroy -f` to stop and delete both containers.
 Test if everything works fine:
  * Go to `http://localhost:9091/targets` -> you should see 3 `UP` states
  * Go to `http://localhost:3001` -> credentials `admin:admin` -> TODO
+ * Go to `http://localhost:8001/` -> you should see some metrics with `myapp_` prefix
 
 Test the connection `host -> vm1`: 
  * Send a request to virtual machine 1: `curl -I http://localhost:8061`

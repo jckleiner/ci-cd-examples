@@ -42,6 +42,7 @@ Vagrant.configure(2) do |config|
 
     vm1.vm.provision "ansible" do |ansible|
       ansible.playbook = "./ansible/playbook.yml"
+      ansible.verbose = "vv"
     end
 
     # Sync folder between host and guest
@@ -92,6 +93,7 @@ Vagrant.configure(2) do |config|
 
     vm2.vm.provision "ansible" do |ansible|
       ansible.playbook = "./ansible/playbook.yml"
+      ansible.verbose = "vv"
     end
 
     # Sync folder between host and guest

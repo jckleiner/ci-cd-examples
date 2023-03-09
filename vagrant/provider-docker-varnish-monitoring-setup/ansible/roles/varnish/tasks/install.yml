@@ -1,0 +1,46 @@
+---
+
+- name: Install base packages
+  package:
+    name: "{{ base_packages }}"
+    state: present
+    update_cache: true
+
+# see: https://www.varnish-software.com/developers/tutorials/installing-varnish-ubuntu/
+# see: https://github.com/geerlingguy/ansible-role-varnish
+- name: Configure packagecloud.io repository
+  block:
+    - name: Ensure dependencies are present.
+      apt:
+        name:
+          - apt-transport-https
+          - gnupg2
+        state: present
+
+    - name: Add packagecloud.io Varnish apt key.
+      apt_key:
+        url: https://packagecloud.io/varnishcache/varnish60lts/gpgkey
+        state: present
+
+    - name: "Add packagecloud.io Varnish apt repository: {{ varnish_apt_repo }}"
+      apt_repository:
+        repo: "{{ varnish_apt_repo }}"
+        state: present
+        # not really needed, just to keep the name consistent with the tutorial 
+        # Will create: /etc/apt/sources.list.d/varnishcache_varnish60lts.list
+        filename: varnishcache_varnish60lts
+
+- name: Ensure Varnish is installed.
+  apt:
+    # this step still installs 6.2.1, even though 'varnish60lts' is configured
+    # that's why giving an explicit version prefix so it installs 6.0.11 (current lts version)
+    name: "varnish=6.0.*"
+    state: present
+    update_cache: true
+
+- name: Ensure Varnish VMODs are installed.
+  apt:
+    name: "{{ varnish_modules_package_name }}"
+    state: present
+    update_cache: true
+  when: varnish_modules_package_name

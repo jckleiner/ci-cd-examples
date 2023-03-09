@@ -3,3 +3,4 @@
   become: true
   roles:
     - { role: custom_varnish_exporter }
+    - { role: varnish }

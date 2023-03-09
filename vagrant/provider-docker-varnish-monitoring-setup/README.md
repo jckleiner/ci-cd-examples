@@ -14,6 +14,8 @@ Run `vagrant destroy -f` to stop and delete both containers.
 Test if everything works fine:
  * Go to `http://localhost:9091/targets` -> you should see 3 `UP` states
  * Go to `http://localhost:3001` -> credentials `admin:admin` -> TODO
+ * Go to `http://localhost:8001/` -> you should see some varnish metrics with prefix `TODO`
+ * `varnishd -V` make sure you have varnish 6 installed
 
 
 ## TODOs

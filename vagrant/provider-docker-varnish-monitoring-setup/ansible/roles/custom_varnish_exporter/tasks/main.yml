@@ -28,3 +28,8 @@
     name: custom_varnish_exporter
     state: started
     enabled: yes
+
+- name: wait for exporter port to open
+  wait_for:
+    port: "8000"
+    timeout: 10

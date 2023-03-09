@@ -61,7 +61,7 @@
         msg: failed
       # "version": "6.0.11-1~focal"
       # matches only a version which is 6.0.11 or has a higher patch version, for example 6.0.12, 6.0.20, 6.0.777
-      when: "not ansible_facts.packages.varnish[0].version[:6] | string | regex_search('^6\\.0\\.(1[1-9]|[2-9]\\d|\\d{3,})$')"
+      when: "not ansible_facts.packages.varnish[0].version[:6] | regex_search('^6\\.0\\.(1[1-9]|[2-9]\\d|\\d{3,})$')"
 
 - name: Ensure Varnish VMODs are installed.
   apt:

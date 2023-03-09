@@ -2,7 +2,7 @@
 
 # - name: "Varnish - Copy varnish secret"
 #   ansible.builtin.copy:
-#     content: "{{ motown2_varnish_secret }}"
+#     content: "{{ varnish_secret }}"
 #     dest: /etc/varnish/secret
 #     owner: root
 #     group: root
@@ -27,8 +27,6 @@
     owner: root
     group: root
     mode: 0644
-  tags:
-    - m2_varnish_update_vcl_files
   notify:
     - reloaded varnish
 

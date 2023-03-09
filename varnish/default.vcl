@@ -3,6 +3,8 @@ vcl 4.0;
 # host.docker.internal works only for mac
 import std;
 
+# The Varnish container runs on localhost:8080
+# by default, requests coming to localhost:8080 will be answered/cached from localhost:2222
 backend default {
     .host = "host.docker.internal";
     .port = "2222";

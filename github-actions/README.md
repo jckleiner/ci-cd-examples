@@ -228,6 +228,29 @@ The `:` has a special meaning in strings and it can't come before a `$` with spa
 - run: echo "environment selected:+ ${{ github.event.inputs.env }}" # environment selected:+ dev
 ```
 
+In the example below, when this workflow is called with `uses: ...yml`, only `arg1` will be passed and notice that even though `argDefault` has a default value, it won't be set (`${{ inputs.argDefault }}` will be '') because it was not a dispatch.
+
+```yml
+on:
+  workflow_call:
+    inputs:
+      arg1:
+        required: true
+        type: string
+
+  workflow_dispatch:
+    inputs:
+      input1:
+        description: a test input field
+        type: string
+        required: true
+      # when called with "uses: ..." this argDefault wont be set to anything.
+      # The default values here are only set when a dispach even comes.
+      argDefault:
+        required: false
+        type: string
+        default: "DEFAULT_WORKS"
+```
 ## inputs vs github.event.inputs
 TODO - https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onworkflow_dispatchinputs
 
@@ -315,7 +338,87 @@ To prevent this we need to mask the values which are secret for us. In this case
  * `::add-mask::${{ mySecret }}`: This **DOES NOT WORK** because it still echoes the secret value to the log (https://github.com/actions/runner/issues/475). No solution given here worked. My example was: I have a secret which contains a JSON object. I want to pass properties of that object to GHA commands (`${{ fromJson(secrets.MY_SECRET_JSON_STRING).password }}`) but could not find a way to hide the values being printed as plain text.
  * **The only possible solution here** is to define each value as a separate GHA secret, then they won't be printed at all by default.
 
+## Sharing a masked secret between jobs/steps
+Looks like currently it is not possible to mask an output and share it with another job via `outputs` (see https://github.com/actions/runner/issues/1498) also not possible to share it between steps if the string was masked.
+
+One makeshift solution is to encrypt the output value before outputting it and when you want to use it, decrypting it (https://github.com/orgs/community/discussions/13082#discussion-3950093).
+
+## $GITHUB_ENV
+To set a custom environment variable, you must define it in the workflow file. The scope of a custom environment variable is limited to the element in which it is defined.
+ * When you devine environment variables at the workflow level with `env:`, those can be accessed from every job
+ * If inside of a jobs step you set and environment variable like `echo "MY_ENV_VAR=such_secret" >> $GITHUB_ENV`, then this variable will be available to the other steps other steps of the job but **not** to other jobs.
+
+TODO - "Unrecognized named-value: 'env'", why does it happen and what is the best way to fix this?
+  - https://stackoverflow.com/questions/73797254/environment-variables-in-github-actions
+  - https://github.com/actions/runner/issues/1189
+
+## always(), success() and failure()
+
+ * `success()`: Returns `true` when none of the previous steps have **failed**, **skipped** or been **canceled**.
+
+## Slack Integration (ONLY PAID PLAN)
+(**For paid plan only**) Create a "Slack Workflow" (click on the name of the org top left corner > tools > workflow builder) and define some input parameters. Then you can define different kinds of actions. If you just want to send a message then use "Send a message" step.
+Once you created your Slack workflow, you will see this under the "Workflow" tab:
+
+> Starts when an app or service sends a web request | Copy URL
+
+Click `Copy URL`, this is the URL where you need to send a POST request with a JSON body, containing the required input parameters you defined.
+So if you defined `text` and `url` in your workflow, your JSON should look something like this:
+
+```json
+{
+  "text": "...",
+  "url": "..."
+}
+```
+
+Once you send a POST request to that endpoint, you'll see a new message on the target channel/dm
+
+Doing this with a GHA looks like this:
+
+```yml
+      - name: Send notification to Slack workflow on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          payload: |
+            {
+              "inputs": "${{ env.INPUTS_JSON }}",
+              "workflowUrl": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+```
+
+In the Slack Workflow Builder, all the defined input variables are by default required.
+Meaning Slack expects those variables in the json payload as a key. If the property is not in the JSON body, then you'll get the following error:
+
+    axios post failed, double check the payload being sent includes the keys Slack expects
+    {
+      text: 'abc',
+      ...
+    }
+    Error: {"error":"missing_field_value","ok":false,"response_metadata":{"messages":["[ERROR] empty required field: 'test'"]}}
+    Error: Request failed with status code 400
+
+## Url of the current workflow
+
+`${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`
+
+**URL for child workflows**: When a workflow calls any reusable workflow, they will be displayed inside it as 'child' workflows.
+So the parents URL will be something like `https://github.com/jckleiner/ci-cd-examples/actions/runs/4354948988` and the childs something like: `https://github.com/jckleiner/ci-cd-examples/actions/runs/4354948988/jobs/7610912199`.
+Looks like this `7610912199` at the end is the job_id. There is no straightforward way to access this id in the workflow. GH only provides `${{ github.job }}` which is a string (the name of the job) but that does not work.
+You could get the integer job_id from the GH API.
+ * See: https://stackoverflow.com/questions/71240338/obtain-job-id-from-a-workflow-run-using-contexts
+
+## Prevent running the same workflow multiple times
+Use https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#concurrency
+
+## ...
 # TODOs
+ * The answer has a link to a repo which contains a lot of GHA examples: https://stackoverflow.com/questions/73702333/github-actions-reuse-outputs-from-other-reusable-workflows
+ * "required: true" is useless https://github.com/actions/runner/issues/1070#issuecomment-897542820
+ * Good overview: https://stackoverflow.com/questions/59757355/reuse-portion-of-github-action-across-jobs
  * How does versions work? my-action@v3 -> does this use the latest 3.x.x?
  * Create Your Own GitHub Actions: https://www.youtube.com/watch?v=jwdG6D-AB1k
  * Nested folders in workflows folder?
@@ -323,3 +426,4 @@ To prevent this we need to mask the values which are secret for us. In this case
    * GitHub Actions Self Hosted Runner (Autoscaling with Kubernetes): https://www.youtube.com/watch?v=lD0t-UgKfEo&t=295s
  * learn more about caching
  * Learn more (and maybe document) about signing containers: https://www.youtube.com/watch?v=OqZlKbTRWOY
+ * when the job is triggered by `cron`, `inputs.myBooleanFlag` will be empty, if `default: false` is not defined under `workflow_dispatch`.

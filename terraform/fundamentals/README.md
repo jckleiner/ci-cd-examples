@@ -690,7 +690,7 @@ module "webserver_cluster" {
   # if the repo is public
   source = "github.com/foo/modules//webserver-cluster?ref=v0.0.1"
   # if the repo is private
-  # source = "git::git@github.com:<OWNER>/<REPO>.git//<PATH>?ref=<VERSION>"
+  # source = "git::git@github.com:<OWNER>/<REPO>.git//<PATH>?ref=<VERSION(TAG)-or-BRANCH_NAME>"
   source = "git::git@github.com:gruntwork-io/terraform-google-gke.git//modules/gke-cluster?ref=v0.1.2"
   cluster_name  = "webservers-staging"
 }
@@ -1052,6 +1052,7 @@ The gold standard, or what you’re really aiming for, is what I call the The Go
 ## ...
 
 ## TODO
+ * If I have 10 nodes in production running and configured in TF, when I change it to 8 in the repository and then do a `terraform destroy`, will all 10 be deleted? If yes, how exactly does TF know the old/real state?
  * AWS don't use the root user to do everything, create a restricted user.
  * What should we check into source control?
  * Terratest, localstack

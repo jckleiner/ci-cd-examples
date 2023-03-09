@@ -1,0 +1,41 @@
+FROM ubuntu:22.04
+
+ENV LANG=en_US.UTF-8
+ENV USER=kleiner
+
+RUN echo Europe/Berlin > /etc/timezone \
+    && ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime \
+    && apt-get update && apt-get -y dist-upgrade \
+    && apt-get -y install \
+                    ansible \
+                    openjdk-11-jdk-headless \
+                    openjdk-17-jdk-headless \
+                    maven \
+                    ca-certificates \
+                    curl \
+                    debianutils \
+                    git \
+                    jq \
+                    locales \
+                    rsync \
+                    sudo \
+                    wget \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && localedef -c -i de_DE -f UTF-8 de_DE.UTF-8
+
+RUN useradd -M ${USER} \
+    && mkdir -p /etc/sudoers.d \
+    && echo "%${USER}  ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/${USER} \
+    && mkdir -p /home/${USER}/.ssh \
+    && ssh-keyscan -H github.com >> /home/${USER}/.ssh/known_hosts
+
+WORKDIR /home/${USER}
+
+# Keeps the container alive
+# locally: use '--entrypoint' instead
+# docker run -t -i ubuntu22 /bin/bash
+# ENTRYPOINT ["tail", "-f", "/dev/null"]
+
+# docker build -t ubuntu22 -f Dockerfile.ubuntu22-2 .
+# docker run -it ubuntu22 /bin/bash

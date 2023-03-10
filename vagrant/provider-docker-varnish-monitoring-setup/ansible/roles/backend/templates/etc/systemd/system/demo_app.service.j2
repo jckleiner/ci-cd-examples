@@ -1,0 +1,13 @@
+[Unit]
+Description=Demo App
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/java -jar -Dserver.port={{ demo_app_port }} /etc/demo_app/varnish-demo-app.jar 
+
+SyslogIdentifier=demo_app
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

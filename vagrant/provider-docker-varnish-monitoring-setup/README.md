@@ -20,5 +20,6 @@ Test if everything works fine:
 
 ## TODOs
  * also import a simple JSON dashboard with ansible (maybe for our custom_varnish_exporter) so on startup we have a dashboard ready?
+  * https://github.com/jonnenauha/prometheus_varnish_exporter/blob/master/dashboards/jonnenauha/dashboard.json
  * varnish in container is problematic, should install it directly on host so the python script has access to the logs
  * also create a load-test script?

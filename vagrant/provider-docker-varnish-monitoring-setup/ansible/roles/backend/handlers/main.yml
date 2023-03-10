@@ -1,0 +1,24 @@
+---
+
+- name: reload systemd
+  systemd:
+    daemon_reload: true
+
+- name: start demo_app
+  service:
+    name: demo_app
+    enabled: true
+    state: started
+  notify: wait for demo_app port to open
+
+- name: reload demo_app
+  service:
+    name: demo_app
+    enabled: true
+    state: reloaded
+  notify: wait for demo_app port to open
+
+- name: wait for demo_app port to open
+  wait_for:
+    port: "{{ demo_app_port }}"
+    timeout: 10

@@ -1,0 +1,7 @@
+---
+
+- name: Install OpenJDK package
+  package:
+    name: "openjdk-17-jdk-headless"
+    state: present
+    update_cache: true

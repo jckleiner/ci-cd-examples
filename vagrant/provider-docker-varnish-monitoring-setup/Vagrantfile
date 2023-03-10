@@ -14,6 +14,7 @@ Vagrant.configure(2) do |config|
     vm1.vm.network :forwarded_port, id: "grafana", host: 3001, guest: 3000
     vm1.vm.network :forwarded_port, id: "varnish_exporter", host: 9131, guest: 9131
     vm1.vm.network :forwarded_port, id: "custom_varnish_exporter", host: 8001, guest: 8000
+    vm1.vm.network :forwarded_port, id: "demo_app", host: 2221, guest: 2221
 
     # Custom configuration for docker
     vm1.vm.provider "docker" do |docker, override|
@@ -43,7 +44,7 @@ Vagrant.configure(2) do |config|
 
     vm1.vm.provision "ansible" do |ansible|
       ansible.playbook = "./ansible/playbook.yml"
-      ansible.verbose = "vv" # use vvv to get even more details
+      # ansible.verbose = "vv" # use vvv to get even more details
     end
 
     # Sync folder between host and guest
@@ -94,7 +95,7 @@ Vagrant.configure(2) do |config|
 
     vm2.vm.provision "ansible" do |ansible|
       ansible.playbook = "./ansible/playbook.yml"
-      ansible.verbose = "vv"
+      # ansible.verbose = "vv"
     end
 
     # Sync folder between host and guest

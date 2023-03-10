@@ -12,6 +12,7 @@ Vagrant.configure(2) do |config|
     vm1.vm.network :forwarded_port, id: "prometheus", host: 9091, guest: 9090
     vm1.vm.network :forwarded_port, id: "node_exporter", host: 9101, guest: 9100
     vm1.vm.network :forwarded_port, id: "grafana", host: 3001, guest: 3000
+    vm1.vm.network :forwarded_port, id: "varnish_exporter", host: 9131, guest: 9131
     vm1.vm.network :forwarded_port, id: "custom_varnish_exporter", host: 8001, guest: 8000
 
     # Custom configuration for docker

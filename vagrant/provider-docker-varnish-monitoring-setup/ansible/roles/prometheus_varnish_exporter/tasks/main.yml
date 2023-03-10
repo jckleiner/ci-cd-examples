@@ -1,0 +1,60 @@
+---
+
+- name: Create a directory if it does not exist
+  file:
+    path: /etc/prometheus_exporter
+    state: directory
+    mode: '0755'
+
+# - name: download prometheus varnish exporter binary
+#   get_url:
+#     url: "{{ url }}"
+#     dest: "/etc/prometheus_exporter/{{ prometheus_varnish_exporter_release_name }}.tar.gz"
+
+# The repo https://github.com/jonnenauha/prometheus_varnish_exporter does not provide arm64 binaries, so I compiled it myself
+# git clone git@github.com:jonnenauha/prometheus_varnish_exporter.git && cd prometheus_varnish_exporter
+# add 'arm64' to build.sh (for goarch in amd64 arm64; do). See https://github.com/jonnenauha/prometheus_varnish_exporter/pull/77/files
+# ./build.sh <version>
+- name: Copy file with owner and permissions
+  copy:
+    src: /home/vagrant/synced_folder/prometheus_varnish_exporter-1.6.2.linux-arm64.tar.gz
+    dest: /etc/prometheus_exporter/prometheus_varnish_exporter-1.6.2.linux-arm64.tar.gz
+    remote_src: true
+    owner: root
+    group: root
+    mode: '0744'
+
+- name: unarchive binary tarball
+  unarchive:
+    copy: no
+    src: "/etc/prometheus_exporter/prometheus_varnish_exporter-1.6.2.linux-arm64.tar.gz"
+    dest: "/etc/prometheus_exporter"
+  register: prometheus_varnish_exporter_updated
+  notify:
+    - restart varnish exporter
+
+- name: update group and owner for files
+  file:
+    path: "/etc/prometheus_exporter/"
+    state: directory
+    recurse: yes
+    owner: root
+    group: root
+  when: prometheus_varnish_exporter_updated is changed
+
+- name: create symlink to the current release
+  file:
+    src: "/etc/prometheus_exporter/prometheus_varnish_exporter-1.6.2.linux-arm64"
+    path: "/etc/prometheus_exporter/varnish_exporter_current"
+    state: link
+
+- name: create systemd service unit
+  template:
+    src: etc/systemd/system/prometheus_varnish_exporter.service.j2
+    dest: /etc/systemd/system/prometheus_varnish_exporter.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - enable varnish exporter
+    - restart varnish exporter

@@ -1,0 +1,6 @@
+---
+prometheus_varnish_exporter_repository: https://github.com/jonnenauha/prometheus_varnish_exporter
+prometheus_varnish_exporter_version: 1.6.1
+prometheus_varnish_exporter_release_name: "prometheus_varnish_exporter-{{ prometheus_varnish_exporter_version }}.linux-amd64"
+prometheus_varnish_exporter_config_flags:
+  'web.listen-address': '0.0.0.0:9131'

@@ -14,4 +14,10 @@ scrape_configs:
   - job_name: custom Varnish metrics provided by a pythoh script
     metrics_path: /
     static_configs:
-      - targets: ["custom_varnish_exporter:8000"]
+      - targets: ["host.docker.internal:8000"]
+
+  # running a python script which serves the metrics under localhost:8000 on the host machine
+  - job_name: varnish exporter
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:9131"]

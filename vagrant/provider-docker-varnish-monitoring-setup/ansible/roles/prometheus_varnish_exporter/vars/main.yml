@@ -1,0 +1,8 @@
+---
+url: "
+  {%- if prometheus_varnish_exporter_url is not defined -%}
+  {{ prometheus_varnish_exporter_repository }}/releases/download/{{ prometheus_varnish_exporter_version }}/
+  {{- prometheus_varnish_exporter_release_name }}.tar.gz
+  {%- else -%}
+  {{ prometheus_varnish_exporter_url }}
+  {%- endif -%}"

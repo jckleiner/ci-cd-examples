@@ -12,9 +12,9 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
     # to enable this container to access the host
-    # the first part 'custom_varnish_exporter' can be named anything
+    # the first part 'host.docker.internal' can be named anything
     extra_hosts:
-      - "custom_varnish_exporter:host-gateway"
+      - "host.docker.internal:host-gateway"
 
   node_exporter:
     image: prom/node-exporter-linux-arm64:v1.5.0

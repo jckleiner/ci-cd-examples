@@ -3,5 +3,6 @@
   become: true
   force_handlers: true
   roles:
-    - { role: custom_varnish_exporter }
     - { role: varnish }
+    - { role: custom_varnish_exporter }
+    - { role: prometheus_varnish_exporter }

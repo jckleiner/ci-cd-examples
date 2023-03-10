@@ -1,0 +1,16 @@
+[Unit]
+Description=Prometheus Varnish Exporter
+After=varnish.service
+
+[Service]
+Type=simple
+User=varnishlog
+Group=varnish
+ExecStart=/etc/prometheus_exporter/varnish_exporter_current/prometheus_varnish_exporter  {% for flag, flag_value in prometheus_varnish_exporter_config_flags.items() %}--{{ flag }}={{ flag_value }} {% endfor %}
+
+SyslogIdentifier=prometheus_varnish_exporter
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

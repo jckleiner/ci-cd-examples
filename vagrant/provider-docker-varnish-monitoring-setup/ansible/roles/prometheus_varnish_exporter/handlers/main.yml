@@ -1,0 +1,10 @@
+---
+- name: enable varnish exporter
+  service:
+    name: prometheus_varnish_exporter
+    enabled: yes
+
+- name: restart varnish exporter
+  service:
+    name: prometheus_varnish_exporter
+    state: restarted

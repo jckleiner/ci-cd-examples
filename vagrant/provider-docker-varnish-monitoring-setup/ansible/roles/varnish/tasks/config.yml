@@ -28,7 +28,7 @@
     group: root
     mode: 0644
   notify:
-    - reloaded varnish
+    - restarted varnish
 
 - name: "Create systemd file"
   template:
@@ -45,3 +45,4 @@
   notify:
     - reloaded systemd
     - restarted varnish
+    

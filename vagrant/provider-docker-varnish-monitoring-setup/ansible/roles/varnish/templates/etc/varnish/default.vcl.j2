@@ -1,6 +1,25 @@
 vcl 4.1;
 
+probe backend_probe { 
+  .url = "/health";
+  .interval = 5s;
+  .timeout = 5s;
+  .window = 9;
+  .threshold = 3;
+}
+
 backend default {
     .host = "127.0.0.1";
     .port = "{{ demo_app_port }}";
+    .probe = backend_probe;
 }
+
+
+sub vcl_recv {
+    # by default varnish does not cache the response when the client sends a cookie
+    # since our demo app does not use any cookies, we can remove all
+    # this helps when testing on localhost. Usually the browser has many cookies stored for different localhost apps
+    unset req.http.Cookie;
+}
+
+

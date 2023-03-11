@@ -20,6 +20,14 @@ import org.springframework.web.bind.annotation.RestController;
         return ResponseEntity.ok(String.format("GET - Node %s - %s", NODE_NUM, now));
     }
 
+    @GetMapping("/health") public ResponseEntity<String> getHealth() {
+        LocalDateTime now = LocalDateTime.now();
+
+        System.out.println(" --> GET /  " + now);
+
+        return ResponseEntity.ok(String.format("GET - Node %s - %s", NODE_NUM, now));
+    }
+
     @GetMapping("/no-store") public ResponseEntity<String> getNoStore() {
         LocalDateTime now = LocalDateTime.now();
 
@@ -28,9 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set("Cache-Control", "no-store");
 
-        return ResponseEntity.ok()
-                .headers(responseHeaders)
-                .body(String.format("GET - Node %s - %s", NODE_NUM, now));
+        return ResponseEntity.ok().headers(responseHeaders).body(String.format("GET - Node %s - %s", NODE_NUM, now));
     }
 
     @GetMapping("/ttl-40") public ResponseEntity<String> getCustomTTL() {
@@ -41,13 +47,10 @@ import org.springframework.web.bind.annotation.RestController;
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set("Cache-Control", "max-age=40");
 
-        return ResponseEntity.ok()
-                .headers(responseHeaders)
-                .body(String.format("GET - Node %s - %s", NODE_NUM, now));
+        return ResponseEntity.ok().headers(responseHeaders).body(String.format("GET - Node %s - %s", NODE_NUM, now));
     }
 
-    @GetMapping("/expires")
-    public ResponseEntity<String> getExpires() {
+    @GetMapping("/expires") public ResponseEntity<String> getExpires() {
         LocalDateTime now = LocalDateTime.now();
 
         System.out.println(" --> GET /expires  " + now);
@@ -56,9 +59,7 @@ import org.springframework.web.bind.annotation.RestController;
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set("Expires", "Wed, 21 Oct 2015 07:28:00 GMT");
 
-        return ResponseEntity.ok()
-                .headers(responseHeaders)
-                .body(String.format("GET - Node %s - %s", NODE_NUM, now));
+        return ResponseEntity.ok().headers(responseHeaders).body(String.format("GET - Node %s - %s", NODE_NUM, now));
     }
 
 }

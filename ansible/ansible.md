@@ -28,6 +28,29 @@ A `systemctl daemon-reload` needed in order for systemctl to use/see the new ser
     - restarted varnish
 ```
 
+## Copying files - be aware
+Consider the following example snippet:
+
+```yml
+- name: copy logrotate from cron.daily to cron.hourly dir
+  copy:
+    src: /etc/cron.daily/logrotate
+    dest: /etc/cron.hourly
+    remote_src: yes
+```
+
+Be aware of these different scenarios:
+
+1.`src` is a file:
+ * When you only give the `dest` folder name **without** a `/` at the end (`dest: /etc/cron.hourly`)
+    * if `dest` points to an existing **folder** then the src file is copied inside
+    * if `dest` points to an existing **file or does not exist**, then a **file** with the name `/etc/cron.hourly` is created (or replaced). In this case, all given folders in path `dest` must exist or else the step will fail.
+ * When you only give the `dest` folder name **with** a `/` at the end (`dest: /etc/cron.hourly/`)
+   * if `dest` does not exist, a new folder is created and the src file will be copies inside
+
+2.`src` is a folder:
+TODO - document, https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html#parameter-dest
+
 ## Copying files and relative file paths
 You don't have to provide a full path or relative path when you want to copy a file from your `files` directory to somewhere. Ansible will pick `foo.conf` automatically from the `files` directory of the role.
 

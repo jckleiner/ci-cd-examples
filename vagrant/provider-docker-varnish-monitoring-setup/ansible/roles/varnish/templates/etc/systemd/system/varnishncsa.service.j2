@@ -1,0 +1,21 @@
+[Unit]
+Description=Varnish Cache HTTP accelerator NCSA logging daemon
+After=varnish.service
+
+[Service]
+RuntimeDirectory=varnishncsa
+Type=forking
+PIDFile=/run/varnishncsa/varnishncsa.pid
+User=varnishlog
+Group=varnish
+
+#https://github.com/varnishcache/pkg-varnish-cache/issues/79
+Restart=on-failure
+RestartSec=10
+ExecStartPre=/bin/sleep 7
+ExecStart=/usr/bin/varnishncsa -a -w /var/log/varnish/varnishncsa.log -D -P /run/varnishncsa/varnishncsa.pid -F '%%{X-Forwarded-For}i %%l %%u %%t \"%%r\" %%s %%b \"%%{User-agent}i\" %%D %%{Varnish:time_firstbyte}x %%{Varnish:handling}x [%%{Last-Modified}o]'
+
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

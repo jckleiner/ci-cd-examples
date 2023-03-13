@@ -22,4 +22,8 @@ sub vcl_recv {
     unset req.http.Cookie;
 }
 
+# sudo varnishlog
+# sudo varnishncsa
+# sudo varnishlog -g raw -i Backend_health
+# sudo varnishadm backend.list
 

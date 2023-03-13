@@ -308,6 +308,7 @@ Varnish sets a cookie like `"/d/8ZQ3pN-4k/varnish?orgId=1&refresh=5s&from=now-15
 TODO - what is this used for?
 
 ## Varnish logging
+By default any installation of `varnishd` **will not write any request logs to disk**. Instead Varnish has an in-memory log, and supplies tools to tap into this log and write to disk. You can start the `varnishncsa.service` which comes bundled with the varnish linux package if you want to write log files to disk.
 
 **Advanced logging**: The `varnishlog`, `varnishtop`, and `varnishncsa` tools allow you to perform deep introspection into the Varnish flow, the input and output
 **Advanced statistics**: The `varnishstat` tool displays numerous counters that give you a global insight into the state of your Varnish server
@@ -321,4 +322,82 @@ On the other hand, `varnishncsa` is a tool that parses the Varnish log files and
 https://ma.ttias.be/reload-varnish-vcl-without-losing-cache-data/
 
 
+## varnishncsa
+When Varnish is installed using the official Linux packages, a `varnishncsa.service` systemd service is automatically created.
+The contents of this service can be viewed by running the following command: `sudo systemctl cat varnishncsa`.
+In Ubuntu this service file is under `/lib/systemd/system/varnishncsa.service`.
+
+This service runs the following command:
+`/usr/bin/varnishncsa -a -w /var/log/varnish/varnishncsa.log -D`
+
+This command continuously appends the output from varnishncsa to `/var/log/varnish/varnishncsa.log`. This command is daemonized through the `-D` option.
+
+### Enabling the varnishncsa service
+The `varnishncsa.service` systemd service is **not enabled by default**. Because Varnish is so powerful and can handle so many concurrent requests, the **sheer number of log lines written to the varnishncsa.log file can potentially overwhelm the system**.
+ * Please only enable varnishncsa.service if you know your disk and your system can keep up with the number of log lines that varnishncsa is writing to the varnishncsa.log log file.
+
+### varnishncsa custom format
+Specify the log format to use. If no format is specified the default log format is used:
+
+ * `%h %l %u %t "%r" %s %b "%{Referer}i" "%{User-agent}i"`
+ * Looks like this: `172.17.0.1 - - [12/Mar/2023:11:04:41 +0000] "GET http://localhost:8061/ HTTP/1.1" 200 44 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/110.0"`
+
+Some options:
+ * %h                            - Remote host. Defaults to ‘-’ if not known. In backend mode this is the IP of the backend server.
+
+ * %l                            - Remote logname. Always `-`.
+
+ * %u                            - Remote user from auth
+
+ * %t                            - In client mode, time when the request was received, in HTTP date/time format. 
+                                In backend mode, time when the request was sent.
+
+ * %r                            - The first line of the request (for example `GET http://localhost:8061/ HTTP/1.1`)
+
+ * %s                            - Status sent to the client. In backend mode, status received from the backend.
+
+ * %b                            - In client mode, size of response in bytes, excluding HTTP headers (only the body). 
+                                In backend mode, the number of bytes received from the backend, excluding HTTP headers. In CLF format, i.e. a ‘-’ rather than a 0 when no bytes are sent.
+
+ * %{X}i                         - (for example "%{User-agent}i") The contents of request header X. 
+                                If the header appears multiple times in a single transaction, the last occurrence is used.
+ * %{X}o                         - (for example [%%{Last-Modified}o]) The contents of response header X. 
+                                If the header appears multiple times in a single transaction, the last occurrence is used.
+ * %{X}x                         - Extended variables. (for example %{Varnish:handling}x)
+
+ * %D                            - In client mode, time taken to serve the request, in microseconds. 
+                                In backend mode, time from the request was sent to the entire body had been received. This is equivalent to %{us}T.
+
+### Filter logs
+**Only log errors**: In order to only log for response or backend response status codes above 399, add this query:
+`-q "RespStatus >= 400 or BerespStatus >= 400"`
+
+**Log problem requests**:To log all requests that took more than two seconds to be delivered, or with a non 200 response status add this query:
+`-q "Timestamp:Resp[3] > 2.0 or RespStatus != 200"`
+
+**Limit log to a certain domain**: To only log requests for a certain domain (example.com in this case), add the following:
+`-q "ReqHeader ~ '^Host: .*\.example.com'"`
+
+### Rotating logs
+On a high volume system, logging to disk will quickly eat up disk, and it is imperative that you set up proper log rotation. Most varnish packages that supply a `varnishncsa` service will also supply a base config for `logrotate`, but configuring this depends heavily on your setup and traffic.
+
+Example config file for varnish, `/etc/logrotate.d/varnish`
+```
+/var/log/varnish/varnishncsa.log {
+  rotate 10
+  size 500M
+  compress
+}
+```
+This configuration basically means that if the specified file is larger then 500 MB, it will be compressed and rotated.
+Rotated means just it gets a suffix like `-1`, `-2` etc (`varnishncsa.log-1.gz`, `varnishncsa.log-2.gz`...). This will be done 10 times and when 10 rotated/old log files are present, the oldest one will be deleted when a new file is rotated. This **does not happen automatically**, it is important that the `logrotate` should be called regularly to check if files have to be rotated.
+
+See `linux.md#logrotate` for more details.
+
+### Rate limiting
+If the `varnishncsa.service` has too much of an impact on your disk or the performance of your system, you can reduce the output of varnishncsa by adding rate limiting. Rate limiting suppresses VSL transactions that exceed the limit. The `-R` option allows you to set the limit for a given duration.
+
+Here’s an example where we only log one line every 10 seconds: `varnishncsa -R 1/10s`
+
 ## ...
+

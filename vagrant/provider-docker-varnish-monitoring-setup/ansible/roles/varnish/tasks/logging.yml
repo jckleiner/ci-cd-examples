@@ -1,0 +1,54 @@
+---
+
+- name: Ensure logrotate is installed
+  package:
+    name: logrotate
+    state: present
+
+- name: "Create systemd file"
+  template:
+    src: etc/systemd/system/varnishncsa.service.j2
+    dest: /etc/systemd/system/varnishncsa.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - reloaded systemd
+    - enabled varnishncsa
+    - restarted varnishncsa
+
+- name: "Create varnish logrotate config"
+  template:
+    src: "etc/logrotate.d/varnish.j2"
+    dest: "/etc/logrotate.d/varnish"
+    owner: root
+    group: root
+    mode: 0644
+
+# to keep the rotated file names unique, we have to disable date extension
+- name: Comment out dateext for hourly rotate to work
+  replace:
+    dest: /etc/logrotate.conf
+    regexp: '^dateext'
+    replace: '#dateext'
+
+# for fast growing log files, it is important to call logrotate frequently
+# therefore moving the logrotate cron script from the daily file to the hourly file
+
+- name: check if /etc/cron.daily/logrotate file exists
+  stat:
+    path: /etc/cron.daily/logrotate
+  register: filecheck_rule
+
+- name: copy logrotate from cron.daily to cron.hourly dir
+  when: filecheck_rule.stat.exists
+  copy:
+    src: /etc/cron.daily/logrotate
+    dest: /etc/cron.hourly/ # because of the / at the end, cron.hourly folder will be created if it does not exists
+    remote_src: yes
+    mode: preserve # give the same permissions as the source file
+
+- name: Clean logrotate from cron.daily
+  ansible.builtin.file:
+    state: absent
+    path: "/etc/cron.daily/logrotate"

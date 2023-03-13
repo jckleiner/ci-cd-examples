@@ -318,11 +318,7 @@ By default any installation of `varnishd` **will not write any request logs to d
 
 On the other hand, `varnishncsa` is a tool that parses the Varnish log files and generates an Apache-style log format for easy analysis and reporting. The log format is customizable, and the output is easier to read, making it a useful tool for generating reports and analyzing web traffic data. The Varnishncsa output is similar to the Apache web server access log format.
 
-## Reloading new configuration without restarting Varnish
-https://ma.ttias.be/reload-varnish-vcl-without-losing-cache-data/
-
-
-## varnishncsa
+### varnishncsa
 When Varnish is installed using the official Linux packages, a `varnishncsa.service` systemd service is automatically created.
 The contents of this service can be viewed by running the following command: `sudo systemctl cat varnishncsa`.
 In Ubuntu this service file is under `/lib/systemd/system/varnishncsa.service`.
@@ -332,11 +328,11 @@ This service runs the following command:
 
 This command continuously appends the output from varnishncsa to `/var/log/varnish/varnishncsa.log`. This command is daemonized through the `-D` option.
 
-### Enabling the varnishncsa service
+#### Enabling the varnishncsa service
 The `varnishncsa.service` systemd service is **not enabled by default**. Because Varnish is so powerful and can handle so many concurrent requests, the **sheer number of log lines written to the varnishncsa.log file can potentially overwhelm the system**.
  * Please only enable varnishncsa.service if you know your disk and your system can keep up with the number of log lines that varnishncsa is writing to the varnishncsa.log log file.
 
-### varnishncsa custom format
+#### varnishncsa custom format
 Specify the log format to use. If no format is specified the default log format is used:
 
  * `%h %l %u %t "%r" %s %b "%{Referer}i" "%{User-agent}i"`
@@ -368,7 +364,7 @@ Some options:
  * %D                            - In client mode, time taken to serve the request, in microseconds. 
                                 In backend mode, time from the request was sent to the entire body had been received. This is equivalent to %{us}T.
 
-### Filter logs
+#### Filter logs
 **Only log errors**: In order to only log for response or backend response status codes above 399, add this query:
 `-q "RespStatus >= 400 or BerespStatus >= 400"`
 
@@ -378,7 +374,7 @@ Some options:
 **Limit log to a certain domain**: To only log requests for a certain domain (example.com in this case), add the following:
 `-q "ReqHeader ~ '^Host: .*\.example.com'"`
 
-### Rotating logs
+#### Rotating logs
 On a high volume system, logging to disk will quickly eat up disk, and it is imperative that you set up proper log rotation. Most varnish packages that supply a `varnishncsa` service will also supply a base config for `logrotate`, but configuring this depends heavily on your setup and traffic.
 
 Example config file for varnish, `/etc/logrotate.d/varnish`
@@ -394,10 +390,30 @@ Rotated means just it gets a suffix like `-1`, `-2` etc (`varnishncsa.log-1.gz`,
 
 See `linux.md#logrotate` for more details.
 
-### Rate limiting
+#### Rate limiting
 If the `varnishncsa.service` has too much of an impact on your disk or the performance of your system, you can reduce the output of varnishncsa by adding rate limiting. Rate limiting suppresses VSL transactions that exceed the limit. The `-R` option allows you to set the limit for a given duration.
 
 Here’s an example where we only log one line every 10 seconds: `varnishncsa -R 1/10s`
+
+
+## Reloading new configuration without restarting Varnish
+https://ma.ttias.be/reload-varnish-vcl-without-losing-cache-data/
+
+### varnishlog
+AFAIK `varnishlog` logs are not saved to the file and there is also not a service like `varnishncsa.servivce` which can be configured. But a similar service can be implemented easily.
+
+By default when you run `sudo varnishlog`, it does not show every type of log lines. 
+You can do `sudo varnishlog -g raw` to see more.
+
+#### Health check logs
+You can see the health check status logs if you run `sudo varnishlog q raw -i Backend_health` (shows only logs with the `Backend_health` tag)
+
+You will see similar logs like this every X seconds, depending on your `probe` config:
+
+    0 Backend_health - boot.default Still healthy 4---X-RH 9 3 9 0.008557 0.010972 HTTP/1.1 200 
+    0 Backend_health - boot.default Still healthy 4---X-RH 9 3 9 0.013052 0.011492 HTTP/1.1 200
+
+
 
 ## ...
 

@@ -13,6 +13,7 @@ Group=varnish
 Restart=on-failure
 RestartSec=10
 ExecStartPre=/bin/sleep 7
+
 ExecStart=/usr/bin/varnishncsa -a -w /var/log/varnish/varnishncsa.log -D -P /run/varnishncsa/varnishncsa.pid -F '%%{X-Forwarded-For}i %%l %%u %%t \"%%r\" %%s %%b \"%%{User-agent}i\" %%D %%{Varnish:time_firstbyte}x %%{Varnish:handling}x [%%{Last-Modified}o]'
 
 ExecReload=/bin/kill -HUP $MAINPID

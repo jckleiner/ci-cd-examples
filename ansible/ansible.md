@@ -86,6 +86,6 @@ When you enable verbose mode `vv`, you can see the the following (when there was
     }
 
 `e199e409859e2c4cbb202756b0f3d3838d027b3e` is the `sha1` checksum of the generated file.
-So it looks like Ansible **compares the files checksum** to determine if it should proceed with the step. The **file name and last-modified date is not relevant** in this case.
+So it looks like Ansible **compares the files checksum** to determine if it should proceed with the step. The **file name and last-modified date is not compared** in this case.
 
 ## ...

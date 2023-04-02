@@ -18,6 +18,13 @@
     state: reloaded
   notify: wait for demo_app port to open
 
+- name: restart demo_app
+  service:
+    name: demo_app
+    enabled: true
+    state: restarted
+  notify: wait for demo_app port to open
+
 - name: wait for demo_app port to open
   wait_for:
     port: "{{ demo_app_port }}"

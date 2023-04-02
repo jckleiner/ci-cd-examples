@@ -20,3 +20,13 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets: ["host.docker.internal:9131"]
+  
+  - job_name: simple java metrics exporter
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:2221"]
+
+  - job_name: spring actuator prometheus exporter
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:2221"]

@@ -10,6 +10,10 @@
   copy:
     src: varnish-demo-app-0.0.1-SNAPSHOT.jar
     dest: /etc/demo_app/varnish-demo-app.jar
+  notify:
+    - restart demo_app
+  tags:
+    - backend_deployment
 
 # TODO - stop if service exists etc.
 
@@ -23,3 +27,5 @@
   notify:
     - reload systemd
     - reload demo_app
+  tags:
+    - backend_deployment
